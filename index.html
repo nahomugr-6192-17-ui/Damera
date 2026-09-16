@@ -1,13 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="am">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <meta name="description" content="ዳመራ — Keep the Fire Burning. A Meskel celebration browser game." />
-  <title>🔥ዳመራ🔥</title>
+  <meta name="description" content="ዳmeラ — Keep the Fire Burning. A Meskel celebration browser game." />
+  <title>🔥ዳmeラ🔥</title>
 
-  <!-- Noto Sans Ethiopic: Amharic character support -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -15,89 +14,182 @@
     rel="stylesheet" />
 
   <style>
-    *,
-    *::before,
-    *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-
-      /* Rich green background — matches game's forest theme.
-           On desktop this fills the side areas around the canvas
-           instead of the previous dark navy, making it look intentional. */
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
       background:
-        radial-gradient(ellipse at 15% 50%, rgba(56, 142, 60, 0.4) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 50%, rgba(27, 94, 32, 0.5) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 50%, rgba(56,142,60,0.4) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 50%, rgba(27,94,32,0.5)  0%, transparent 55%),
         linear-gradient(180deg, #1b5e20 0%, #2e7d32 45%, #33691e 100%);
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
+      display: flex; align-items: center; justify-content: center;
       font-family: 'Nunito', 'Noto Sans Ethiopic', sans-serif;
     }
 
     #game-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: relative; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    /* On desktop give the canvas a subtle shadow so it looks
-         like a polished window against the green background */
     canvas {
-      display: block;
-      touch-action: none;
-      border-radius: 4px;
+      display: block; touch-action: none; border-radius: 4px;
       box-shadow:
-        0 0 0 2px rgba(255, 255, 255, 0.06),
-        0 8px 48px rgba(0, 0, 0, 0.55),
-        0 0 80px rgba(46, 125, 50, 0.25);
+        0 0 0 2px rgba(255,255,255,0.06),
+        0 8px 48px rgba(0,0,0,0.55),
+        0 0 80px rgba(46,125,50,0.25);
     }
 
-    /* Decorative side panels on wide desktop screens */
     @media (min-aspect-ratio: 3/4) and (min-width: 900px) {
-
-      body::before,
-      body::after {
-        content: '';
-        position: fixed;
-        top: 0;
-        width: 18%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 0;
+      body::before, body::after {
+        content: ''; position: fixed; top: 0; width: 18%; height: 100%;
+        pointer-events: none; z-index: 0;
       }
-
       body::before {
         left: 0;
         background:
-          radial-gradient(ellipse at 30% 70%, rgba(27, 94, 32, 0.8) 0%, transparent 60%),
-          radial-gradient(ellipse at 60% 30%, rgba(56, 142, 60, 0.5) 0%, transparent 50%);
+          radial-gradient(ellipse at 30% 70%, rgba(27,94,32,0.8) 0%, transparent 60%),
+          radial-gradient(ellipse at 60% 30%, rgba(56,142,60,0.5) 0%, transparent 50%);
       }
-
       body::after {
         right: 0;
         background:
-          radial-gradient(ellipse at 70% 65%, rgba(27, 94, 32, 0.8) 0%, transparent 60%),
-          radial-gradient(ellipse at 40% 25%, rgba(56, 142, 60, 0.5) 0%, transparent 50%);
+          radial-gradient(ellipse at 70% 65%, rgba(27,94,32,0.8) 0%, transparent 60%),
+          radial-gradient(ellipse at 40% 25%, rgba(56,142,60,0.5) 0%, transparent 50%);
       }
+    }
+
+    /* ── Portrait rotation warning (mobile < 600px in portrait) ── */
+    #rotate-prompt {
+      display: none; position: fixed; inset: 0; background: #1b5e20;
+      z-index: 9999; flex-direction: column; align-items: center;
+      justify-content: center; color: #fff; text-align: center; padding: 24px;
+    }
+    #rotate-prompt .icon { font-size: 64px; animation: rp 1.2s ease-in-out infinite alternate; }
+    #rotate-prompt h2 { font-size: 22px; margin-top: 16px; color: #ffee58; }
+    #rotate-prompt p  { font-size: 14px; margin-top: 8px; color: #c8e6c9; }
+    @keyframes rp { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+    @media screen and (max-width: 600px) and (orientation: portrait) {
+      #rotate-prompt { display: flex; }
+    }
+
+    /* ── Mobile controls overlay ── */
+    #mobile-controls {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      height: 160px; pointer-events: none; z-index: 500;
+    }
+    @media (hover: none) and (pointer: coarse) { #mobile-controls { display: block; } }
+    @media screen and (max-width: 900px)        { #mobile-controls { display: block; } }
+
+    /* Joystick */
+    #joystick-zone {
+      position: absolute; bottom: 16px; left: 20px;
+      width: 130px; height: 130px; pointer-events: all;
+    }
+    #joystick-base {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.35);
+    }
+    #joystick-thumb {
+      position: absolute; width: 50px; height: 50px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffee58, #e65100);
+      border: 3px solid rgba(255,255,255,0.5); box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+    }
+
+    /* Action button */
+    #action-btn {
+      position: absolute; bottom: 28px; right: 28px;
+      width: 90px; height: 90px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #66bb6a, #2e7d32);
+      border: 4px solid rgba(255,255,255,0.45); box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+      color: #fff; font-family: 'Fredoka One', sans-serif; font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: all; cursor: pointer; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.08s, box-shadow 0.08s;
+    }
+    #action-btn:active, #action-btn.pressed { transform: scale(0.92); }
+    #action-btn.carrying {
+      background: radial-gradient(circle at 35% 35%, #ef9a9a, #c62828);
     }
   </style>
 </head>
 
 <body>
+  <!-- Portrait rotation warning -->
+  <div id="rotate-prompt">
+    <div class="icon">📱</div>
+    <h2>Please Rotate Your Device</h2>
+    <p>ዳmeラ plays best in <strong>landscape mode</strong>.<br/>Turn your phone sideways to play!</p>
+  </div>
+
+  <!-- Phaser canvas -->
   <div id="game-container"></div>
+
+  <!-- Mobile controls -->
+  <div id="mobile-controls">
+    <div id="joystick-zone">
+      <div id="joystick-base"></div>
+      <div id="joystick-thumb"></div>
+    </div>
+    <button id="action-btn" type="button">PICK</button>
+  </div>
+
+  <script>
+    window.__jx = 0; window.__jy = 0;
+    window.__actionPressed = false; window.__isCarryingWood = false;
+
+    const zone = document.getElementById('joystick-zone');
+    const thumb = document.getElementById('joystick-thumb');
+    const actionBtn = document.getElementById('action-btn');
+    const RADIUS = 40;
+    let activeTouchId = null, zoneRect = null;
+
+    function getCenter() {
+      if (!zoneRect) zoneRect = zone.getBoundingClientRect();
+      return { cx: zoneRect.left + zoneRect.width/2, cy: zoneRect.top + zoneRect.height/2 };
+    }
+    function resetJoystick() {
+      window.__jx = 0; window.__jy = 0;
+      thumb.style.transform = 'translate(-50%,-50%)';
+      activeTouchId = null;
+    }
+
+    zone.addEventListener('touchstart', (e) => {
+      e.preventDefault(); zoneRect = zone.getBoundingClientRect();
+      if (activeTouchId === null) activeTouchId = e.changedTouches[0].identifier;
+    }, { passive: false });
+
+    zone.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier !== activeTouchId) continue;
+        const { cx, cy } = getCenter();
+        let dx = t.clientX - cx, dy = t.clientY - cy;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > RADIUS) { dx = dx/dist*RADIUS; dy = dy/dist*RADIUS; }
+        thumb.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        window.__jx = dx/RADIUS; window.__jy = dy/RADIUS;
+      }
+    }, { passive: false });
+
+    zone.addEventListener('touchend',    (e) => { for (const t of e.changedTouches) if (t.identifier === activeTouchId) resetJoystick(); });
+    zone.addEventListener('touchcancel', (e) => { for (const t of e.changedTouches) if (t.identifier === activeTouchId) resetJoystick(); });
+    window.addEventListener('resize', () => { zoneRect = null; });
+
+    actionBtn.addEventListener('touchstart', (e) => { e.preventDefault(); window.__actionPressed = true; actionBtn.classList.add('pressed'); }, { passive: false });
+    actionBtn.addEventListener('touchend',   (e) => { e.preventDefault(); actionBtn.classList.remove('pressed'); }, { passive: false });
+    actionBtn.addEventListener('mousedown',  () => { window.__actionPressed = true; });
+    actionBtn.addEventListener('mouseup',    () => { actionBtn.classList.remove('pressed'); });
+
+    (function tick() {
+      const carrying = window.__isCarryingWood;
+      actionBtn.textContent = carrying ? 'DROP' : 'PICK';
+      carrying ? actionBtn.classList.add('carrying') : actionBtn.classList.remove('carrying');
+      requestAnimationFrame(tick);
+    })();
+  </script>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 
