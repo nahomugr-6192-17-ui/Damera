@@ -121,7 +121,11 @@ export class GameScene extends Phaser.Scene {
       this.woodItems.forEach(w => { if (!w.isCollected) w.update(9999, 9999); });
     }
 
-    this.fire.update(this.player.x, this.player.y, this.player.carryingWood);
+    // Auto-deliver wood when player walks into fire range while carrying wood
+    const nearFire = this.fire.update(this.player.x, this.player.y, this.player.carryingWood);
+    if (nearFire && this.player.carryingWood) {
+      this.deliverWood();
+    }
     this.hud.update(this.state);
   }
 
@@ -137,10 +141,8 @@ export class GameScene extends Phaser.Scene {
           break;
         }
       }
-    } else {
-      if (Phaser.Math.Distance.Between(this.player.x, this.player.y, this.fire.x, this.fire.y) <= 64)
-        this.deliverWood();
     }
+    // Delivery is handled automatically in update() when player walks into fire range
   }
 
   private deliverWood(): void {
