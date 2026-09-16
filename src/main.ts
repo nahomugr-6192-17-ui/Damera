@@ -1,57 +1,41 @@
-// ============================================================
-// main.ts
-// Phaser game entry point. Creates the game instance and
-// registers all scenes.
+﻿// ============================================================
+// main.ts — Phaser game entry point
+// Scale.RESIZE fills the full viewport on every device so the
+// game is properly playable on mobile, tablet and desktop.
 // ============================================================
 
-import Phaser from 'phaser';
-import { BootScene }        from './scenes/BootScene';
-import { MainMenuScene }    from './scenes/MainMenuScene';
-import { HowToPlayScene }   from './scenes/HowToPlayScene';
-import { LevelSelectScene } from './scenes/LevelSelectScene';
-import { GameScene }        from './scenes/GameScene';
-import { GAME_WIDTH, GAME_HEIGHT } from './config/GameConfig';
+import Phaser from "phaser";
+import { BootScene }        from "./scenes/BootScene";
+import { MainMenuScene }    from "./scenes/MainMenuScene";
+import { HowToPlayScene }   from "./scenes/HowToPlayScene";
+import { LevelSelectScene } from "./scenes/LevelSelectScene";
+import { GameScene }        from "./scenes/GameScene";
 
 const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,        // WebGL if available, fallback to Canvas
-  width: GAME_WIDTH,        // Logical canvas width  (480 px)
-  height: GAME_HEIGHT,      // Logical canvas height (854 px — ~9:16 mobile)
-  parent: 'game-container', // Mount into the div in index.html
+  type: Phaser.AUTO,
+  parent: "game-container",
+  backgroundColor: "#2e7d32",
 
-  backgroundColor: '#2e7d32',
-
-  // Scale to fill the screen while keeping aspect ratio
+  // RESIZE: canvas always fills the full browser viewport.
+  // Every scene reads this.scale.width / this.scale.height to
+  // position UI so it works on any screen size.
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode:       Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
 
-  // Physics not used for movement (we do it manually), but
-  // keeping the block here makes it easy to add later.
   physics: {
-    default: 'arcade',
-    arcade: {
-      gravity: { x: 0, y: 0 },
-      debug: false,
-    },
+    default: "arcade",
+    arcade: { gravity: { x: 0, y: 0 }, debug: false },
   },
 
-  // Register every scene in load order
-  scene: [
-    BootScene,
-    MainMenuScene,
-    HowToPlayScene,
-    LevelSelectScene,
-    GameScene,
-  ],
+  scene: [BootScene, MainMenuScene, HowToPlayScene, LevelSelectScene, GameScene],
 
-  // Improve text rendering on high-DPI (retina) screens
   render: {
-    antialias: true,
-    pixelArt: false,
-    roundPixels: false,
+    antialias:    true,
+    pixelArt:     false,
+    roundPixels:  false,
   },
 };
 
-// Create the Phaser game — it auto-starts at BootScene
 new Phaser.Game(config);

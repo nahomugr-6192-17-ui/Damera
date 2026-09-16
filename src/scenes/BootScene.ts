@@ -1,49 +1,54 @@
-// ============================================================
-// BootScene.ts
-// First scene to run. Generates all procedural textures and
-// then hands off to MainMenuScene.
+﻿// ============================================================
+// BootScene.ts — generates the grass tile + preloads sprites
 // ============================================================
 
-import Phaser from 'phaser';
+import Phaser from "phaser";
 
 export class BootScene extends Phaser.Scene {
-  constructor() {
-    super({ key: 'BootScene' });
-  }
+  constructor() { super({ key: "BootScene" }); }
 
   preload(): void {
-    // All graphics are generated programmatically — nothing to load.
-    // If you add sprite sheets or audio later, load them here.
+    // Pixel-art sprites used across the game
+    this.load.image("tree", "assets/tree.png");
+    this.load.image("wood", "assets/wood.png");
+    this.load.image("fire", "assets/fire.png");
   }
 
   create(): void {
-    // Generate a grass tile texture used as the map background
-    this.generateGrassTile();
-    // Move straight to the main menu
-    this.scene.start('MainMenuScene');
-  }
-
-  private generateGrassTile(): void {
-    const size = 64;
+    // Generate 64x64 grass tile as a RenderTexture
+    const TILE = 64;
+    const rt = this.add.renderTexture(0, 0, TILE, TILE);
     const gfx = this.add.graphics();
 
-    // Base green
-    gfx.fillStyle(0x4caf50);
-    gfx.fillRect(0, 0, size, size);
-
-    // Darker green variation patches
-    gfx.fillStyle(0x43a047, 0.5);
-    gfx.fillRect(0, 0, 32, 32);
-    gfx.fillRect(32, 32, 32, 32);
-
-    // Small grass tufts
-    gfx.fillStyle(0x388e3c, 0.6);
-    [[8, 12], [40, 50], [20, 40], [52, 20], [30, 8], [55, 48]].forEach(([x, y]) => {
-      gfx.fillRect(x, y, 3, 5);
-      gfx.fillRect(x + 3, y + 2, 2, 4);
+    const baseColors = [0x4caf50, 0x43a047, 0x388e3c];
+    baseColors.forEach(c => {
+      gfx.fillStyle(c, 1);
+      gfx.fillRect(
+        Phaser.Math.Between(0, TILE),
+        Phaser.Math.Between(0, TILE),
+        Phaser.Math.Between(12, 24),
+        Phaser.Math.Between(12, 24),
+      );
     });
+    gfx.fillStyle(0x33691e, 1);
+    gfx.fillRect(0, 0, TILE, TILE);
 
-    gfx.generateTexture('grass', size, size);
+    // Tuft marks
+    for (let i = 0; i < 10; i++) {
+      gfx.fillStyle(Phaser.Math.Between(0x388e3c, 0x43a047), 0.6);
+      gfx.fillRect(
+        Phaser.Math.Between(0, TILE - 4),
+        Phaser.Math.Between(0, TILE - 6),
+        Phaser.Math.Between(3, 7),
+        Phaser.Math.Between(4, 8),
+      );
+    }
+
+    rt.draw(gfx, 0, 0);
+    rt.saveTexture("grass");
     gfx.destroy();
+    rt.destroy();
+
+    this.scene.start("MainMenuScene");
   }
 }

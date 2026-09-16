@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // GameState.ts
 // Tracks the current state of a gameplay session.
 // ============================================================
@@ -24,7 +24,7 @@ export interface GameState {
 }
 
 /** Create a fresh game state for a new level */
-export function createGameState(requiredWood: number, timeSeconds: number): GameState {
+export function createGameState(timeSeconds: number, requiredWood: number): GameState {
   return {
     status: GameStatus.PLAYING,
     woodDelivered: 0,
