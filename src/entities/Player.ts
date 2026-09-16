@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // Player.ts
 // The farmer/player character.
 // Supports tap-to-move (mobile + desktop) and keyboard movement.

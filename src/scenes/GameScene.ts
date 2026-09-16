@@ -126,6 +126,16 @@ export class GameScene extends Phaser.Scene {
     if (nearFire && this.player.carryingWood) {
       this.deliverWood();
     }
+    // Sync carrying state to mobile UI button label
+    (window as unknown as Record<string, boolean>).__isCarryingWood = this.player.carryingWood;
+
+    // Mobile action button — read one-shot press
+    const w = window as unknown as Record<string, boolean>;
+    if (w.__actionPressed) {
+      w.__actionPressed = false;
+      this.tryCollectOrDeliver();
+    }
+
     this.hud.update(this.state);
   }
 
