@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // GameScene.ts
 // Main gameplay scene. Orchestrates the map, player, wood,
 // fire, mud zones, HUD, timer, and end-game states.
@@ -16,7 +16,7 @@ import { GameStatus, createGameState } from '../systems/GameState';
 import type { GameState } from '../systems/GameState';
 import { LEVELS } from '../config/LevelConfig';
 import type { DifficultyKey } from '../config/LevelConfig';
-import { MAP_WIDTH, MAP_HEIGHT, TREE_RADIUS } from '../config/GameConfig';
+import { MAP_WIDTH, MAP_HEIGHT, WOOD_TIME_BONUS } from '../config/GameConfig';
 
 // ── Fixed map layout data ────────────────────────────────────
 

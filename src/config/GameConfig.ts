@@ -4,6 +4,22 @@
 // Tune these values to adjust feel without searching everywhere.
 // ============================================================
 
+// ── Wood delivery time bonus ─────────────────────────────────
+/** Seconds added to the timer each time wood is delivered to the ዳመራ */
+export const WOOD_TIME_BONUS = 3;
+
+// ── Fire / ዳመራ visual scale ───────────────────────────────────
+/** Minimum fire container scale (near zero time remaining) */
+export const FIRE_MIN_SCALE = 0.28;
+/** Maximum fire container scale (time plentiful / wood delivered) */
+export const FIRE_MAX_SCALE = 1.35;
+/**
+ * Reference time (seconds) for 100% fire scale.
+ * Higher than the longest level (60 s) so fire can grow above
+ * its starting size when the player delivers wood (+3 s each).
+ */
+export const FIRE_REFERENCE_TIME = 90;
+
 /** Phaser canvas logical width (scales to fit screen) */
 export const GAME_WIDTH = 480;
 
@@ -52,3 +68,5 @@ export const COLOR_PLAYER_BODY = 0xf4a261;
 export const COLOR_PLAYER_SHIRT= 0x2196f3;
 export const COLOR_TREE_TRUNK  = 0x5d3a1a;
 export const COLOR_TREE_CANOPY = 0x2e7d32;
+/** Colour used for the extinguished ዳመራ fire (game over) */
+export const COLOR_FIRE_OUT    = 0x888888;
