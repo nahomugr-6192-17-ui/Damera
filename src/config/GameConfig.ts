@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // GameConfig.ts
 // Global game constants shared across all scenes and entities.
 // Tune these values to adjust feel without searching everywhere.
@@ -21,10 +21,10 @@ export const FIRE_MAX_SCALE = 1.35;
 export const FIRE_REFERENCE_TIME = 90;
 
 /** Phaser canvas logical width (scales to fit screen) */
-export const GAME_WIDTH = 480;
+export const GAME_WIDTH = 960;
 
 /** Phaser canvas logical height */
-export const GAME_HEIGHT = 854;
+export const GAME_HEIGHT = 540;
 
 /** Map world width in pixels (larger than canvas → camera scrolls) */
 export const MAP_WIDTH = 960;

@@ -51,6 +51,11 @@ export class GameScene extends Phaser.Scene {
   constructor() { super({ key: "GameScene" }); }
 
   create(): void {
+    // Safety: ensure keyboard is enabled regardless of previous game state.
+    // Player.freeze() previously disabled it globally, causing HARD level
+    // (and any level after a game-over) to have no keyboard input.
+    if (this.input.keyboard) this.input.keyboard.enabled = true;
+
     this.levelKey = (this.registry.get("selectedLevel") as DifficultyKey) ?? "EASY";
     const cfg = LEVELS[this.levelKey];
     this.state = createGameState(cfg.time, cfg.requiredWood);

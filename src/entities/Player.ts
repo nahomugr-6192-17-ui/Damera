@@ -26,6 +26,7 @@ export class Player {
   private isTapMoving: boolean = false;
   private inMud: boolean = false;
   private _carryingWood: boolean = false;
+  private _frozen:       boolean = false;
 
   /** Current effective speed (may be reduced by mud) */
   get speed(): number {
@@ -155,9 +156,10 @@ export class Player {
   /** Stop all movement (used on game-over / victory) */
   freeze(): void {
     this.isTapMoving = false;
-    if (this.scene.input.keyboard) {
-      this.scene.input.keyboard.enabled = false;
-    }
+    this._frozen = true;
+    // NOTE: do NOT touch scene.input.keyboard.enabled here — that is a
+    // global flag that persists across scene restarts and breaks the
+    // keyboard on subsequent playthroughs (especially on Hard level).
   }
 
   destroy(): void {
