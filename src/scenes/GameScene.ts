@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // GameScene.ts — main gameplay loop
 // Timer: counts DOWN. Wood delivery: +3s + fire grows.
 // ============================================================
@@ -95,12 +95,12 @@ export class GameScene extends Phaser.Scene {
     this.hud = new HUD(this, cfg.requiredWood);
 
     // Input
+    // Space OR Enter = pick up / deliver wood
     this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
       .on("down", () => this.tryCollectOrDeliver());
+    this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER)
+      .on("down", () => this.tryCollectOrDeliver());
     this.input.on("pointerdown", () => this.tryCollectOrDeliver());
-
-    // Show mobile controls only during gameplay
-    this.showMobileControls();
   }
 
   update(time: number, delta: number): void {
@@ -191,15 +191,6 @@ export class GameScene extends Phaser.Scene {
 
   private restartLevel(): void { this.hideMobileControls(); this.endOverlay?.destroy?.(); this.scene.restart(); }
   private goMainMenu(): void { this.endOverlay?.destroy?.(); this.scene.start("MainMenuScene"); }
-  /** Show the HTML mobile controls overlay */
-  private showMobileControls(): void {
-    const mc = document.getElementById('mobile-controls');
-    if (!mc) return;
-    // Only show on touch/small screens
-    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-    if (isTouch || window.innerWidth <= 900) mc.style.display = 'block';
-  }
-
   /** Hide the HTML mobile controls overlay */
   private hideMobileControls(): void {
     const mc = document.getElementById('mobile-controls');

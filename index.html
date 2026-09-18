@@ -64,6 +64,9 @@
       #rotate-prompt { display: flex; }
     }
 
+    /* Mobile controls visibility is controlled entirely by JS touch detection */
+    /* No CSS media queries — avoids false positives on desktop */
+
     /* ── Mobile controls — hidden by default, shown only during GameScene ── */
     #mobile-controls {
       display: none;
@@ -223,6 +226,15 @@
     // Desktop fallback
     actionBtn.addEventListener('mousedown', () => { window.__actionPressed = true; });
     actionBtn.addEventListener('mouseup',   () => { actionBtn.classList.remove('pressed'); });
+
+    // Only reveal controls when an actual touchstart fires on the document.
+    // This is 100% reliable — desktop mouse clicks do NOT trigger touchstart.
+    // Chrome on Windows sometimes lies about maxTouchPoints, so we ignore that.
+    function revealControls() {
+      document.getElementById('mobile-controls').style.display = 'block';
+      document.removeEventListener('touchstart', revealControls);
+    }
+    document.addEventListener('touchstart', revealControls, { once: true, passive: true });
 
     // Continuously sync button label/color from GameScene state
     (function tick() {
