@@ -1,47 +1,49 @@
-// ============================================================
+﻿// ============================================================
 // LevelConfig.ts
-// Central configuration for all difficulty levels.
-// Change values here to adjust difficulty without touching
-// game logic files.
 // ============================================================
 
 export type DifficultyKey = 'EASY' | 'MEH' | 'HARD';
 
 export interface LevelConfig {
-  key: DifficultyKey;
-  label: string;
-  description: string;
+  key:          DifficultyKey;
+  label:        string;
+  description:  string;
   /** Time limit in seconds */
-  time: number;
+  time:         number;
   /** Number of wood bundles the player must deliver to win */
   requiredWood: number;
-  /** Total wood bundles placed on the map */
-  woodCount: number;
+  /** Total wood bundles placed on the map (== requiredWood) */
+  woodCount:    number;
+  /** How many of those woods spawn inside mud zones */
+  mudWoodCount: number;
 }
 
 export const LEVELS: Record<DifficultyKey, LevelConfig> = {
   EASY: {
     key: 'EASY',
     label: 'EASY',
-    description: 'More time (1 min), fewer woods (6 woods)',
-    time: 60,
-    requiredWood: 6,
-    woodCount: 8,
+    description: '60 sec • 6 woods to deliver',
+    time:         60,
+    requiredWood:  6,
+    woodCount:     6,
+    mudWoodCount:  2,
   },
   MEH: {
     key: 'MEH',
     label: 'MEH',
-    description: 'Balanced challenge (40 sec, 10 woods)',
-    time: 40,
+    description: '40 sec • 10 woods to deliver',
+    time:         40,
     requiredWood: 10,
-    woodCount: 13,
+    woodCount:    10,
+    mudWoodCount:  4,
   },
   HARD: {
     key: 'HARD',
     label: 'HARD',
-    description: 'Less time, more woods (25 sec, 15 woods)',
-    time: 25,
+    description: '25 sec • 15 woods to deliver',
+    time:         25,
     requiredWood: 15,
-    woodCount: 18,
+    woodCount:    15,
+    mudWoodCount:  6,
   },
 };
