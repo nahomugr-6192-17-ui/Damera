@@ -98,6 +98,9 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
       .on("down", () => this.tryCollectOrDeliver());
     this.input.on("pointerdown", () => this.tryCollectOrDeliver());
+
+    // Show mobile controls only during gameplay
+    this.showMobileControls();
   }
 
   update(time: number, delta: number): void {
@@ -186,6 +189,21 @@ export class GameScene extends Phaser.Scene {
       () => this.restartLevel(), () => this.goMainMenu());
   }
 
-  private restartLevel(): void { this.endOverlay?.destroy?.(); this.scene.restart(); }
+  private restartLevel(): void { this.hideMobileControls(); this.endOverlay?.destroy?.(); this.scene.restart(); }
   private goMainMenu(): void { this.endOverlay?.destroy?.(); this.scene.start("MainMenuScene"); }
+  /** Show the HTML mobile controls overlay */
+  private showMobileControls(): void {
+    const mc = document.getElementById('mobile-controls');
+    if (!mc) return;
+    // Only show on touch/small screens
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    if (isTouch || window.innerWidth <= 900) mc.style.display = 'block';
+  }
+
+  /** Hide the HTML mobile controls overlay */
+  private hideMobileControls(): void {
+    const mc = document.getElementById('mobile-controls');
+    if (mc) mc.style.display = 'none';
+  }
+
 }
