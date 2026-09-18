@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // HowToPlayScene.ts — 2-column landscape layout (960×540)
 //   Left  (0-470):  flow icons + game steps
 //   Right (490-960): controls table + mud warning
@@ -91,9 +91,10 @@ export class HowToPlayScene extends Phaser.Scene {
       ["S / \u2193",            "Move Down"],
       ["A / \u2190",            "Move Left"],
       ["D / \u2192",            "Move Right"],
-      ["Space / Enter",         "Pick up / Deliver wood"],
+      ["Space / Enter",         "Collect wood / Deliver to \u12f3\u1218\u122b"],
       ["Joystick (mobile)",     "Move player"],
-      ["PICK / DROP (mobile)",  "Pick up or deliver"],
+      ["PICK button (mobile)",  "Collect nearby wood"],
+      ["DROP button (mobile)",  "Deliver wood to \u12f3\u1218\u122b"],
     ];
 
     const rowBg = this.add.graphics();

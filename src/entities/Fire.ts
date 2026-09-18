@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // Fire.ts — procedural graphics fire with wood-count growth
 // ============================================================
 import Phaser from "phaser";
@@ -45,7 +45,7 @@ export class Fire {
     this.container.setDepth(8);
     this.container.setScale(FIRE_MIN_SCALE);
 
-    this.promptText = scene.add.text(0, 0, "Walk here to add wood to \u12f3\u1218\u122b", {
+    this.promptText = scene.add.text(0, 0, "Press ENTER / DROP to add wood \u12f3\u1218\u122b", {
       fontSize: "14px",
       fontFamily: '"Noto Sans Ethiopic", Nunito, sans-serif',
       color: "#ffffff",

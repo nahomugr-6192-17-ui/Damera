@@ -1,5 +1,13 @@
 ﻿// ============================================================
 // GameScene.ts
+// INPUT DESIGN:
+//   Movement  : keyboard (WASD/arrows) + virtual joystick
+//   Collect   : SPACE or ENTER (when near wood, not carrying)
+//   Deliver   : SPACE or ENTER (when carrying + near fire)
+//   Mobile    : PICK/DROP button  (same smart-action)
+//
+//   NO general pointerdown/touch → gameplay action.
+//   NO automatic delivery on proximity.
 // ============================================================
 
 import Phaser from "phaser";
@@ -17,9 +25,10 @@ import type { DifficultyKey } from "../config/LevelConfig";
 import {
   MAP_WIDTH, MAP_HEIGHT, WOOD_TIME_BONUS,
   COLOR_TREE_TRUNK, COLOR_TREE_CANOPY,
+  FIRE_DELIVER_RADIUS, WOOD_COLLECT_RADIUS,
 } from "../config/GameConfig";
 
-// ── Map data ────────────────────────────────────────────────
+// ── Map data ─────────────────────────────────────────────────
 
 const TREE_POSITIONS = [
   { x: 120, y: 180 }, { x: 260, y: 140 }, { x: 400, y: 200 }, { x: 550, y: 160 }, { x: 700, y: 130 },
@@ -34,102 +43,88 @@ const MUD_ZONES = [
   { x: 850, y: 740, w: 130, h: 75 },
 ];
 
-// Normal-ground wood positions (verified > 50px from every tree and fire).
-// 9 positions — enough to serve HARD's 9 normal woods (15 - 6 mud).
 const NORMAL_WOOD: { x: number; y: number }[] = [
   { x: 200, y: 280 }, { x: 450, y: 270 }, { x: 630, y: 230 }, { x: 920, y: 280 },
   { x: 200, y: 510 }, { x: 430, y: 490 }, { x: 700, y: 520 }, { x: 920, y: 450 },
   { x: 500, y: 600 },
 ];
 
-// Mud-zone wood positions — one per mud zone + one extra in zone 4 (index 5)
-// for HARD's 6th mud wood.  Distribution:
-//   EASY  (2 mud): zones 0, 1
-//   MEH   (4 mud): zones 0, 1, 2, 3
-//   HARD  (6 mud): zones 0, 1, 2, 3, 4 (×1), 4 (×1 extra)
 const MUD_WOOD: { x: number; y: number }[] = [
   { x: 380, y: 605 },  // zone 0
   { x: 600, y: 565 },  // zone 1
   { x: 810, y: 630 },  // zone 2
   { x: 250, y: 775 },  // zone 3
-  { x: 900, y: 765 },  // zone 4  (first)
-  { x: 940, y: 785 },  // zone 4  (second — used only for HARD)
+  { x: 900, y: 765 },  // zone 4 first
+  { x: 940, y: 785 },  // zone 4 second (HARD only)
 ];
 
 const FIRE_X = 150;
 const FIRE_Y = 820;
 
-// Tree collision radius (trunk area — smaller than visual canopy)
 const TREE_COLLIDE_R = 22;
-// Player collision radius (roughly PLAYER_SIZE * 0.45)
-const PLAYER_R = 14;
+const PLAYER_R       = 14;
 
-// ── Scene ───────────────────────────────────────────────────
+// ── Scene ────────────────────────────────────────────────────
 
 export class GameScene extends Phaser.Scene {
-  private player!:    Player;
-  private fire!:      Fire;
-  private woodItems:  Wood[] = [];
-  private mudZones:   Mud[]  = [];
-  private hud!:       HUD;
+  private player!:     Player;
+  private fire!:       Fire;
+  private woodItems:   Wood[] = [];
+  private mudZones:    Mud[]  = [];
+  private hud!:        HUD;
   private endOverlay!: GameOverOverlay | VictoryOverlay | null;
-  private state!:     GameState;
-  private levelKey!:  DifficultyKey;
-
-  // Collision bodies for trees (manual circle–circle collision)
+  private state!:      GameState;
+  private levelKey!:   DifficultyKey;
   private treeColliders: { x: number; y: number; r: number }[] = [];
 
   constructor() { super({ key: "GameScene" }); }
 
   create(): void {
-    // Safety: keyboard may have been disabled in a previous session
     if (this.input.keyboard) this.input.keyboard.enabled = true;
 
-    this.levelKey = (this.registry.get("selectedLevel") as DifficultyKey) ?? "EASY";
-    const cfg     = LEVELS[this.levelKey];
-    this.state    = createGameState(cfg.time, cfg.requiredWood);
-    this.endOverlay = null;
-    this.treeColliders = [];
-    this.woodItems     = [];
-    this.mudZones      = [];
+    this.levelKey       = (this.registry.get("selectedLevel") as DifficultyKey) ?? "EASY";
+    const cfg           = LEVELS[this.levelKey];
+    this.state          = createGameState(cfg.time, cfg.requiredWood);
+    this.endOverlay     = null;
+    this.treeColliders  = [];
+    this.woodItems      = [];
+    this.mudZones       = [];
 
-    // Grass background
+    // Grass
     const ts = 64;
     for (let tx = 0; tx < MAP_WIDTH; tx += ts)
       for (let ty = 0; ty < MAP_HEIGHT; ty += ts)
         this.add.image(tx + ts / 2, ty + ts / 2, "grass").setDisplaySize(ts, ts).setDepth(0);
 
-    // Mud zones
+    // Mud
     MUD_ZONES.forEach(({ x, y, w, h }) => this.mudZones.push(new Mud(this, x, y, w, h)));
 
-    // Trees — visual + collision body
+    // Trees + collision bodies
     TREE_POSITIONS.forEach(({ x, y }) => {
       const r = Phaser.Math.Between(28, 42);
-      // Visual layers
       this.add.rectangle(x, y + r * 0.7, r * 0.38, r * 0.9, COLOR_TREE_TRUNK).setDepth(5);
-      this.add.arc(x, y, r,              0, 360, false, COLOR_TREE_CANOPY).setDepth(6);
-      this.add.arc(x, y, r * 0.72,      0, 360, false, 0x388e3c).setDepth(6);
+      this.add.arc(x, y, r, 0, 360, false, COLOR_TREE_CANOPY).setDepth(6);
+      this.add.arc(x, y, r * 0.72,     0, 360, false, 0x388e3c).setDepth(6);
       this.add.arc(x, y - r * 0.22, r * 0.48, 0, 360, false, 0x43a047).setDepth(6);
-      // Collision circle (represents physical trunk/base — smaller than canopy)
       this.treeColliders.push({ x, y, r: TREE_COLLIDE_R });
     });
 
-    // Wood positions: normal ground + mud, per difficulty
-    const normalCount  = cfg.requiredWood - cfg.mudWoodCount;
+    // Wood bundles (normal ground + mud, per difficulty)
+    const normalCount   = cfg.requiredWood - cfg.mudWoodCount;
     const woodPositions = [
       ...NORMAL_WOOD.slice(0, normalCount),
       ...MUD_WOOD.slice(0, cfg.mudWoodCount),
     ];
     woodPositions.forEach(({ x, y }) => this.woodItems.push(new Wood(this, x, y)));
 
-    // Fire (ዳmeラ)
+    // Fire
     this.fire = new Fire(this, FIRE_X, FIRE_Y);
     this.add.text(FIRE_X, FIRE_Y + 60, "\u12f3\u1218\u122b", {
       fontSize: "18px", fontFamily: '"Noto Sans Ethiopic",Nunito,sans-serif',
       color: "#ffee58", stroke: "#5d2a00", strokeThickness: 3,
     }).setOrigin(0.5).setDepth(9);
 
-    // Player (starts at map centre)
+    // Player
     this.player = new Player(this, MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
     // Camera
@@ -139,12 +134,19 @@ export class GameScene extends Phaser.Scene {
     // HUD
     this.hud = new HUD(this, cfg.requiredWood);
 
-    // Input — Space / Enter = pick or deliver
-    this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
-      .on("down", () => this.tryCollectOrDeliver());
-    this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER)
-      .on("down", () => this.tryCollectOrDeliver());
-    this.input.on("pointerdown", () => this.tryCollectOrDeliver());
+    // ── Keyboard action keys ──────────────────────────────────
+    // SPACE = collect wood (when not carrying + near wood)
+    // ENTER = deliver wood (when carrying + near fire)
+    // Both also do the smart-action in the other case:
+    //   - If carrying and SPACE: tries delivery
+    //   - If not carrying and ENTER: tries collect
+    // This unified handleAction() keeps the UX simple.
+    const actionHandler = () => this.handleAction();
+    this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE).on("down", actionHandler);
+    this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER).on("down", actionHandler);
+
+    // NO general this.input.on("pointerdown", ...) — touch must NOT trigger actions.
+    // The joystick uses its own touchmove/touchend listeners in index.html.
   }
 
   update(time: number, delta: number): void {
@@ -158,41 +160,74 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // Mud detection
+    // Mud slowdown
     const inMud = this.mudZones.some(m => m.containsPoint(this.player.x, this.player.y));
     this.player.setInMud(inMud);
 
-    // Player movement
+    // Movement
     this.player.update(time, delta);
 
-    // Tree collision resolution (manual circle-circle push-out)
+    // Tree collision
     this.resolveTreeCollisions();
 
-    // Wood prompts
+    // Wood proximity prompts (no auto-collect)
     if (!this.player.carryingWood) {
       for (const w of this.woodItems) { if (!w.isCollected) w.update(this.player.x, this.player.y); }
     } else {
       this.woodItems.forEach(w => { if (!w.isCollected) w.update(9999, 9999); });
     }
 
-    // Auto-deliver when in fire range while carrying
-    const nearFire = this.fire.update(this.player.x, this.player.y, this.player.carryingWood);
-    if (nearFire && this.player.carryingWood) this.deliverWood();
+    // Fire visual update — shows "press ENTER/DROP" prompt when in range.
+    // NOT used for automatic delivery — delivery is only via handleAction().
+    this.fire.update(this.player.x, this.player.y, this.player.carryingWood);
 
-    // Sync carrying state to mobile UI
+    // Sync carrying state to mobile UI button label
     (window as unknown as Record<string, boolean>).__isCarryingWood = this.player.carryingWood;
 
-    // Mobile action button
+    // Mobile PICK/DROP button — explicit player action, same as keyboard
     const w = window as unknown as Record<string, boolean>;
     if (w.__actionPressed) {
       w.__actionPressed = false;
-      this.tryCollectOrDeliver();
+      this.handleAction();
     }
 
     this.hud.update(this.state);
   }
 
-  /** Push player out of any overlapping tree collision circles */
+  /**
+   * Unified explicit action:
+   *   NOT carrying → try collect nearest wood in range
+   *   Carrying     → try deliver to fire ONLY if within FIRE_DELIVER_RADIUS
+   *
+   * Called by: SPACE key, ENTER key, mobile PICK/DROP button.
+   * Never called by proximity alone.
+   */
+  private handleAction(): void {
+    if (this.state.status !== GameStatus.PLAYING) return;
+
+    if (!this.player.carryingWood) {
+      // ── Collect: find nearest wood in range ─────────────────
+      for (const w of this.woodItems) {
+        if (w.isCollected) continue;
+        if (Phaser.Math.Distance.Between(this.player.x, this.player.y, w.x, w.y) <= WOOD_COLLECT_RADIUS) {
+          w.collect();
+          this.player.pickUpWood();
+          this.state.carryingWood = true;
+          break;
+        }
+      }
+    } else {
+      // ── Deliver: only if close enough to fire ───────────────
+      const distToFire = Phaser.Math.Distance.Between(
+        this.player.x, this.player.y, this.fire.x, this.fire.y
+      );
+      if (distToFire <= FIRE_DELIVER_RADIUS) {
+        this.deliverWood();
+      }
+      // If too far from fire: player keeps carrying — no action.
+    }
+  }
+
   private resolveTreeCollisions(): void {
     for (const tree of this.treeColliders) {
       const dx   = this.player.sprite.x - tree.x;
@@ -205,33 +240,17 @@ export class GameScene extends Phaser.Scene {
         this.player.sprite.y += (dy / dist) * push;
       }
     }
-    // Re-clamp after push-out
     this.player.sprite.x = Phaser.Math.Clamp(this.player.sprite.x, 20, MAP_WIDTH  - 20);
     this.player.sprite.y = Phaser.Math.Clamp(this.player.sprite.y, 20, MAP_HEIGHT - 20);
   }
 
-  tryCollectOrDeliver(): void {
-    if (this.state.status !== GameStatus.PLAYING) return;
-    if (!this.player.carryingWood) {
-      for (const w of this.woodItems) {
-        if (w.isCollected) continue;
-        if (Phaser.Math.Distance.Between(this.player.x, this.player.y, w.x, w.y) <= 48) {
-          w.collect();
-          this.player.pickUpWood();
-          this.state.carryingWood = true;
-          break;
-        }
-      }
-    }
-  }
-
   private deliverWood(): void {
     this.player.deliverWood();
-    this.state.carryingWood    = false;
-    this.state.woodDelivered  += 1;
+    this.state.carryingWood   = false;
+    this.state.woodDelivered += 1;
     this.fire.onWoodAdded();
     this.fire.growFromWood(this.state.woodDelivered, this.state.requiredWood);
-    this.state.timeRemaining  += WOOD_TIME_BONUS; // +3 s on delivery only
+    this.state.timeRemaining += WOOD_TIME_BONUS;   // +3 s on successful delivery only
     if (this.state.woodDelivered >= this.state.requiredWood) this.triggerVictory();
   }
 
