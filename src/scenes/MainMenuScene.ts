@@ -19,9 +19,9 @@ export class MainMenuScene extends Phaser.Scene {
     bg.fillRect(0, 0, W, H);
 
     // -- Decorative trees
-    this.drawDecorTree(80,     H * 0.35, 38);
+    this.drawDecorTree(80, H * 0.35, 38);
     this.drawDecorTree(W - 70, H * 0.38, 34);
-    this.drawDecorTree(50,     H * 0.65, 30);
+    this.drawDecorTree(50, H * 0.65, 30);
     this.drawDecorTree(W - 55, H * 0.68, 28);
     this.drawDecorTree(cx - 150, H * 0.78, 26);
     this.drawDecorTree(cx + 145, H * 0.80, 28);
@@ -31,14 +31,14 @@ export class MainMenuScene extends Phaser.Scene {
     this.tweens.add({ targets: glow, alpha: { from: 0.22, to: 0.42 }, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
 
     // -- Fire icon
-    const fireOuter = this.add.arc(cx, H * 0.22,      32, 0, 360, false, 0xff4500);
-    const fireMid   = this.add.arc(cx, H * 0.22 - 5,  20, 0, 360, false, 0xff8c00);
-    const fireCore  = this.add.arc(cx, H * 0.22 - 10, 10, 0, 360, false, 0xffee00);
+    const fireOuter = this.add.arc(cx, H * 0.22, 32, 0, 360, false, 0xff4500);
+    const fireMid = this.add.arc(cx, H * 0.22 - 5, 20, 0, 360, false, 0xff8c00);
+    const fireCore = this.add.arc(cx, H * 0.22 - 10, 10, 0, 360, false, 0xffee00);
     this.tweens.add({ targets: [fireOuter, fireMid, fireCore], scaleX: { from: 1, to: 0.9 }, scaleY: { from: 1, to: 0.85 }, duration: 300, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
 
     // -- Main title: ዳmeラ
-    this.add.text(cx, H * 0.34, "\u12f3\u1218\u122b", {
-      fontSize: "52px",
+    this.add.text(cx, H * 0.34, "ዳመራ", {
+      fontSize: "60px",
       fontFamily: '"Noto Sans Ethiopic", "Fredoka One", Nunito, sans-serif',
       color: "#ffee58",
       stroke: "#5d2a00",
@@ -105,8 +105,8 @@ export class MainMenuScene extends Phaser.Scene {
 
   private drawDecorTree(x: number, y: number, r: number): void {
     this.add.rectangle(x, y + r * 0.6, r * 0.35, r * 0.8, 0x5d3a1a);
-    this.add.arc(x, y, r,          0, 360, false, 0x2e7d32);
-    this.add.arc(x, y, r * 0.7,   0, 360, false, 0x388e3c);
+    this.add.arc(x, y, r, 0, 360, false, 0x2e7d32);
+    this.add.arc(x, y, r * 0.7, 0, 360, false, 0x388e3c);
     this.add.arc(x, y - r * 0.2, r * 0.45, 0, 360, false, 0x43a047);
   }
 }

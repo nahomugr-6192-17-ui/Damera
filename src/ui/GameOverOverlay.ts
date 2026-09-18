@@ -25,13 +25,13 @@ export class GameOverOverlay {
     this.elements.push(overlay);
 
     const title = scene.add.text(cx, H * 0.22, "GAME OVER", {
-      fontSize: "48px", fontFamily: "Fredoka One, Nunito, sans-serif",
+      fontSize: "50px", fontFamily: "Fredoka One, Nunito, sans-serif",
       color: "#ff3333", stroke: "#660000", strokeThickness: 4,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
     this.elements.push(title);
 
-    const sub = scene.add.text(cx, H * 0.34, "The fire went out.", {
-      fontSize: "20px", fontFamily: "Nunito, sans-serif", color: "#cccccc",
+    const sub = scene.add.text(cx, H * 0.34, "ዳመራው ካልበራ ዓመቱ እንዴት ሊበራ ነው?", {
+      fontSize: "28px", fontFamily: "Nunito, sans-serif", color: "#cccccc",
     }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
     this.elements.push(sub);
 
@@ -43,7 +43,7 @@ export class GameOverOverlay {
     this.elements.push(progress);
 
     this.makeButton(scene, cx, H * 0.60, "PLAY AGAIN", 0x2e7d32, onPlayAgain);
-    this.makeButton(scene, cx, H * 0.73, "MAIN MENU",  0x424242, onMainMenu);
+    this.makeButton(scene, cx, H * 0.73, "MAIN MENU", 0x424242, onMainMenu);
   }
 
   private makeButton(scene: Phaser.Scene, x: number, y: number, label: string, color: number, cb: () => void): void {
@@ -62,9 +62,9 @@ export class GameOverOverlay {
     btn.setInteractive({ useHandCursor: true });
 
     btn.on("pointerover", () => { scene.tweens.add({ targets: btn, scale: 1.06, duration: 80 }); });
-    btn.on("pointerout",  () => { scene.tweens.add({ targets: btn, scale: 1.00, duration: 80 }); });
+    btn.on("pointerout", () => { scene.tweens.add({ targets: btn, scale: 1.00, duration: 80 }); });
     btn.on("pointerdown", () => { scene.tweens.add({ targets: btn, scale: 0.96, duration: 60 }); });
-    btn.on("pointerup",   cb);
+    btn.on("pointerup", cb);
 
     this.elements.push(btn);
   }

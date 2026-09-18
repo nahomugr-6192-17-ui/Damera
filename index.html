@@ -1,25 +1,35 @@
 ﻿<!DOCTYPE html>
 <html lang="am">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="ዳmeラ — Keep the Fire Burning. A Meskel celebration browser game." />
-  <title>🔥ዳmeラ🔥</title>
+  <meta name="description" content="ዳመራ — Keep the Fire Burning. A Meskel celebration browser game." />
+  <title>🔥ዳመራ🔥</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;700;900&family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;700;900&family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap"
+    rel="stylesheet" />
 
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       width: 100%;
       height: 100%;
       overflow: hidden;
       background:
-        radial-gradient(ellipse at 15% 50%, rgba(56,142,60,0.4) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 50%, rgba(27,94,32,0.5) 0%, transparent 55%),
+        radial-gradient(ellipse at 15% 50%, rgba(56, 142, 60, 0.4) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 50%, rgba(27, 94, 32, 0.5) 0%, transparent 55%),
         linear-gradient(180deg, #1b5e20 0%, #2e7d32 45%, #33691e 100%);
       font-family: 'Nunito', 'Noto Sans Ethiopic', sans-serif;
     }
@@ -27,7 +37,8 @@
     /* ── Game container: fixed, fills full viewport — NO flexbox so Phaser RESIZE works ── */
     #game-container {
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
     }
@@ -52,14 +63,41 @@
       text-align: center;
       padding: 32px;
     }
-    #rotate-prompt .icon { font-size: 72px; animation: rp 1.2s ease-in-out infinite alternate; }
-    #rotate-prompt h2 { font-size: 24px; margin-top: 16px; color: #ffee58; font-family: 'Fredoka One', sans-serif; }
-    #rotate-prompt p  { font-size: 15px; margin-top: 10px; color: #c8e6c9; line-height: 1.5; }
-    @keyframes rp { from { transform: rotate(-18deg); } to { transform: rotate(18deg); } }
+
+    #rotate-prompt .icon {
+      font-size: 72px;
+      animation: rp 1.2s ease-in-out infinite alternate;
+    }
+
+    #rotate-prompt h2 {
+      font-size: 24px;
+      margin-top: 16px;
+      color: #ffee58;
+      font-family: 'Fredoka One', sans-serif;
+    }
+
+    #rotate-prompt p {
+      font-size: 15px;
+      margin-top: 10px;
+      color: #c8e6c9;
+      line-height: 1.5;
+    }
+
+    @keyframes rp {
+      from {
+        transform: rotate(-18deg);
+      }
+
+      to {
+        transform: rotate(18deg);
+      }
+    }
 
     /* Show rotate prompt only on small portrait screens */
     @media screen and (max-width: 600px) and (orientation: portrait) {
-      #rotate-prompt { display: flex; }
+      #rotate-prompt {
+        display: flex;
+      }
     }
 
     /* Mobile controls visibility is controlled entirely by JS touch detection */
@@ -87,6 +125,7 @@
       pointer-events: all;
       touch-action: none;
     }
+
     #joystick-base {
       position: absolute;
       inset: 0;
@@ -95,6 +134,7 @@
       border: 3px solid rgba(255, 255, 255, 0.4);
       backdrop-filter: blur(6px);
     }
+
     #joystick-thumb {
       position: absolute;
       width: 48px;
@@ -135,8 +175,15 @@
       border: none;
       outline: none;
     }
-    #action-btn.pressed  { transform: scale(0.90); box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-    #action-btn.carrying { background: radial-gradient(circle at 35% 35%, #ef9a9a, #c62828); }
+
+    #action-btn.pressed {
+      transform: scale(0.90);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    #action-btn.carrying {
+      background: radial-gradient(circle at 35% 35%, #ef9a9a, #c62828);
+    }
   </style>
 </head>
 
@@ -145,7 +192,7 @@
   <div id="rotate-prompt">
     <div class="icon">📱</div>
     <h2>Please Rotate Your Device</h2>
-    <p>ዳmeラ plays best in <strong>landscape mode</strong>.<br/>Turn your phone sideways to continue.</p>
+    <p>ዳmeラ plays best in <strong>landscape mode</strong>.<br />Turn your phone sideways to continue.</p>
   </div>
 
   <!-- Phaser canvas container -->
@@ -162,18 +209,18 @@
 
   <script>
     // Global state bridge between HTML controls and Phaser
-    window.__jx              = 0;
-    window.__jy              = 0;
-    window.__actionPressed   = false;
-    window.__isCarryingWood  = false;
+    window.__jx = 0;
+    window.__jy = 0;
+    window.__actionPressed = false;
+    window.__isCarryingWood = false;
 
-    const zone      = document.getElementById('joystick-zone');
-    const thumb     = document.getElementById('joystick-thumb');
+    const zone = document.getElementById('joystick-zone');
+    const thumb = document.getElementById('joystick-thumb');
     const actionBtn = document.getElementById('action-btn');
-    const RADIUS    = 36;
+    const RADIUS = 36;
 
     let activeTouchId = null;
-    let zoneRect      = null;
+    let zoneRect = null;
 
     function getCenter() {
       if (!zoneRect) zoneRect = zone.getBoundingClientRect();
@@ -208,7 +255,7 @@
       }
     }, { passive: false });
 
-    zone.addEventListener('touchend',    e => { for (const t of e.changedTouches) if (t.identifier === activeTouchId) resetJoystick(); });
+    zone.addEventListener('touchend', e => { for (const t of e.changedTouches) if (t.identifier === activeTouchId) resetJoystick(); });
     zone.addEventListener('touchcancel', e => { for (const t of e.changedTouches) if (t.identifier === activeTouchId) resetJoystick(); });
     window.addEventListener('resize', () => { zoneRect = null; });
 
@@ -223,7 +270,7 @@
     }, { passive: false });
     // Desktop fallback
     actionBtn.addEventListener('mousedown', () => { window.__actionPressed = true; });
-    actionBtn.addEventListener('mouseup',   () => { actionBtn.classList.remove('pressed'); });
+    actionBtn.addEventListener('mouseup', () => { actionBtn.classList.remove('pressed'); });
 
     // Only reveal controls when an actual touchstart fires on the document.
     // This is 100% reliable — desktop mouse clicks do NOT trigger touchstart.
@@ -245,4 +292,5 @@
 
   <script type="module" src="/src/main.ts"></script>
 </body>
+
 </html>

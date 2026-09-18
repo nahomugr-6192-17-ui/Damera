@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // Fire.ts — procedural graphics fire with wood-count growth
 // ============================================================
 import Phaser from "phaser";
@@ -9,13 +9,13 @@ export class Fire {
   private scene: Phaser.Scene;
 
   private outerFlame: Phaser.GameObjects.Arc;
-  private midFlame:   Phaser.GameObjects.Arc;
-  private coreFlame:  Phaser.GameObjects.Arc;
-  private glow:       Phaser.GameObjects.Arc;
+  private midFlame: Phaser.GameObjects.Arc;
+  private coreFlame: Phaser.GameObjects.Arc;
+  private glow: Phaser.GameObjects.Arc;
 
-  private promptText:     Phaser.GameObjects.Text;
-  private promptVisible:  boolean = false;
-  private baseScale:      number  = FIRE_MIN_SCALE;
+  private promptText: Phaser.GameObjects.Text;
+  private promptVisible: boolean = false;
+  private baseScale: number = FIRE_MIN_SCALE;
   private isExtinguished: boolean = false;
 
   get x(): number { return this.container.x; }
@@ -34,10 +34,10 @@ export class Fire {
       poles.push(pole);
     });
 
-    this.glow       = scene.add.arc(0, 0, FIRE_RADIUS * 1.4,  0, 360, false, 0xff8800, 0.18);
-    this.outerFlame = scene.add.arc(0, 0, FIRE_RADIUS,        0, 360, false, 0xff4500);
-    this.midFlame   = scene.add.arc(0, -4, FIRE_RADIUS * 0.65,0, 360, false, 0xff8c00);
-    this.coreFlame  = scene.add.arc(0, -8, FIRE_RADIUS * 0.35,0, 360, false, 0xffee00);
+    this.glow = scene.add.arc(0, 0, FIRE_RADIUS * 1.4, 0, 360, false, 0xff8800, 0.18);
+    this.outerFlame = scene.add.arc(0, 0, FIRE_RADIUS, 0, 360, false, 0xff4500);
+    this.midFlame = scene.add.arc(0, -4, FIRE_RADIUS * 0.65, 0, 360, false, 0xff8c00);
+    this.coreFlame = scene.add.arc(0, -8, FIRE_RADIUS * 0.35, 0, 360, false, 0xffee00);
 
     this.container = scene.add.container(x, y, [
       this.glow, ...poles, this.outerFlame, this.midFlame, this.coreFlame,
@@ -45,8 +45,8 @@ export class Fire {
     this.container.setDepth(8);
     this.container.setScale(FIRE_MIN_SCALE);
 
-    this.promptText = scene.add.text(0, 0, "Press ENTER / DROP to add wood \u12f3\u1218\u122b", {
-      fontSize: "14px",
+    this.promptText = scene.add.text(0, 0, "Add Wood", {
+      fontSize: "12px",
       fontFamily: '"Noto Sans Ethiopic", Nunito, sans-serif',
       color: "#ffffff",
       backgroundColor: "#cc4400cc",
@@ -59,7 +59,7 @@ export class Fire {
   /** Grow fire based on number of woods delivered */
   growFromWood(woodDelivered: number, requiredWood: number): void {
     if (this.isExtinguished) return;
-    const ratio    = Phaser.Math.Clamp(woodDelivered / requiredWood, 0, 1);
+    const ratio = Phaser.Math.Clamp(woodDelivered / requiredWood, 0, 1);
     this.baseScale = FIRE_MIN_SCALE + (FIRE_MAX_SCALE - FIRE_MIN_SCALE) * ratio;
     this.scene.tweens.killTweensOf(this.container);
     this.scene.tweens.add({
@@ -69,7 +69,7 @@ export class Fire {
   }
 
   update(playerX: number, playerY: number, carryingWood: boolean): boolean {
-    const dist    = Phaser.Math.Distance.Between(playerX, playerY, this.x, this.y);
+    const dist = Phaser.Math.Distance.Between(playerX, playerY, this.x, this.y);
     const inRange = dist <= FIRE_DELIVER_RADIUS && carryingWood;
 
     if (inRange !== this.promptVisible) {
