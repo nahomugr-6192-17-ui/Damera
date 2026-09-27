@@ -36,7 +36,7 @@ export class MainMenuScene extends Phaser.Scene {
     const fireCore = this.add.arc(cx, H * 0.22 - 10, 10, 0, 360, false, 0xffee00);
     this.tweens.add({ targets: [fireOuter, fireMid, fireCore], scaleX: { from: 1, to: 0.9 }, scaleY: { from: 1, to: 0.85 }, duration: 300, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
 
-    // -- Main title: ዳmeラ
+    // -- Main title: ዳመራ
     this.add.text(cx, H * 0.34, "ዳመራ", {
       fontSize: "60px",
       fontFamily: '"Noto Sans Ethiopic", "Fredoka One", Nunito, sans-serif',
