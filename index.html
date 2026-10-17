@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="am">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="ዳመራ — Keep the Fire Burning. A Meskel celebration browser game." />
-  <title>🔥ዳመራ🔥</title>
+  <meta name="description" content="ደመራ — Keep the Fire Burning. A Meskel celebration browser game." />
+  <title>🔥ደመራ🔥</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -130,9 +130,10 @@
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.25);
-      border: 3px solid rgba(255, 255, 255, 0.4);
-      backdrop-filter: blur(6px);
+      background: radial-gradient(circle at center, rgba(27, 94, 32, 0.4), rgba(10, 20, 10, 0.65));
+      border: 2.5px solid rgba(255, 215, 64, 0.55);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 0 14px rgba(255, 215, 64, 0.15);
+      backdrop-filter: blur(8px);
     }
 
     #joystick-thumb {
@@ -140,9 +141,9 @@
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #ffee58, #e65100);
-      border: 3px solid rgba(255, 255, 255, 0.6);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+      background: radial-gradient(circle at 35% 30%, #fff9c4 0%, #ffd54f 35%, #e65100 80%, #bf360c 100%);
+      border: 2.5px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 179, 0, 0.5);
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -157,9 +158,9 @@
       width: 96px;
       height: 96px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #81c784, #2e7d32);
-      border: 4px solid rgba(255, 255, 255, 0.5);
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+      background: radial-gradient(circle at 35% 30%, #a5d6a7 0%, #43a047 40%, #1b5e20 85%, #0d3c13 100%);
+      border: 3px solid rgba(255, 235, 59, 0.85);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(76, 175, 80, 0.45);
       color: #fff;
       font-family: 'Fredoka One', sans-serif;
       font-size: 22px;
@@ -172,7 +173,6 @@
       user-select: none;
       -webkit-tap-highlight-color: transparent;
       transition: transform 0.08s, box-shadow 0.08s;
-      border: none;
       outline: none;
     }
 
@@ -182,7 +182,9 @@
     }
 
     #action-btn.carrying {
-      background: radial-gradient(circle at 35% 35%, #ef9a9a, #c62828);
+      background: radial-gradient(circle at 35% 30%, #ffcc80 0%, #ff6d00 40%, #d50000 85%, #8a0000 100%);
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 87, 34, 0.65);
     }
   </style>
 </head>
@@ -192,7 +194,7 @@
   <div id="rotate-prompt">
     <div class="icon">📱</div>
     <h2>Please Rotate Your Device</h2>
-    <p>ዳመራ plays best in <strong>landscape mode</strong>.<br />Turn your phone sideways to continue.</p>
+    <p>ደመራ plays best in <strong>landscape mode</strong>.<br />Turn your phone sideways to continue.</p>
   </div>
 
   <!-- Phaser canvas container -->

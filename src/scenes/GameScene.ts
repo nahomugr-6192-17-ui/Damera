@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // GameScene.ts
 // INPUT DESIGN:
 //   Movement  : keyboard (WASD/arrows) + virtual joystick
@@ -11,16 +11,16 @@
 // ============================================================
 
 import Phaser from "phaser";
-import { Player }          from "../entities/Player";
-import { Wood }            from "../entities/Wood";
-import { Fire }            from "../entities/Fire";
-import { Mud }             from "../entities/Mud";
-import { HUD }             from "../ui/HUD";
+import { Player } from "../entities/Player";
+import { Wood } from "../entities/Wood";
+import { Fire } from "../entities/Fire";
+import { Mud } from "../entities/Mud";
+import { HUD } from "../ui/HUD";
 import { GameOverOverlay } from "../ui/GameOverOverlay";
-import { VictoryOverlay }  from "../ui/VictoryOverlay";
+import { VictoryOverlay } from "../ui/VictoryOverlay";
 import { GameStatus, createGameState } from "../systems/GameState";
-import type { GameState }  from "../systems/GameState";
-import { LEVELS }          from "../config/LevelConfig";
+import type { GameState } from "../systems/GameState";
+import { LEVELS } from "../config/LevelConfig";
 import type { DifficultyKey } from "../config/LevelConfig";
 import {
   MAP_WIDTH, MAP_HEIGHT, WOOD_TIME_BONUS,
@@ -62,33 +62,38 @@ const FIRE_X = 150;
 const FIRE_Y = 820;
 
 const TREE_COLLIDE_R = 22;
-const PLAYER_R       = 14;
+const PLAYER_R = 14;
 
 // ── Scene ────────────────────────────────────────────────────
 
 export class GameScene extends Phaser.Scene {
-  private player!:     Player;
-  private fire!:       Fire;
-  private woodItems:   Wood[] = [];
-  private mudZones:    Mud[]  = [];
-  private hud!:        HUD;
+  private player!: Player;
+  private fire!: Fire;
+  private woodItems: Wood[] = [];
+  private mudZones: Mud[] = [];
+  private hud!: HUD;
   private endOverlay!: GameOverOverlay | VictoryOverlay | null;
-  private state!:      GameState;
-  private levelKey!:   DifficultyKey;
+  private state!: GameState;
+  private levelKey!: DifficultyKey;
   private treeColliders: { x: number; y: number; r: number }[] = [];
+  private lastCountdownSecond: number = -1;
+  private gameOverVoiceTimer?: Phaser.Time.TimerEvent;
 
   constructor() { super({ key: "GameScene" }); }
 
   create(): void {
     if (this.input.keyboard) this.input.keyboard.enabled = true;
 
-    this.levelKey       = (this.registry.get("selectedLevel") as DifficultyKey) ?? "EASY";
-    const cfg           = LEVELS[this.levelKey];
-    this.state          = createGameState(cfg.time, cfg.requiredWood);
-    this.endOverlay     = null;
-    this.treeColliders  = [];
-    this.woodItems      = [];
-    this.mudZones       = [];
+    this.levelKey = (this.registry.get("selectedLevel") as DifficultyKey) ?? "EASY";
+    const cfg = LEVELS[this.levelKey];
+    this.state = createGameState(cfg.time, cfg.requiredWood);
+    this.endOverlay = null;
+    this.lastCountdownSecond = -1;
+    this.stopAudioAndTimers();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.stopAudioAndTimers());
+    this.treeColliders = [];
+    this.woodItems = [];
+    this.mudZones = [];
 
     // Grass
     const ts = 64;
@@ -100,17 +105,83 @@ export class GameScene extends Phaser.Scene {
     MUD_ZONES.forEach(({ x, y, w, h }) => this.mudZones.push(new Mud(this, x, y, w, h)));
 
     // Trees + collision bodies
-    TREE_POSITIONS.forEach(({ x, y }) => {
-      const r = Phaser.Math.Between(28, 42);
-      this.add.rectangle(x, y + r * 0.7, r * 0.38, r * 0.9, COLOR_TREE_TRUNK).setDepth(5);
-      this.add.arc(x, y, r, 0, 360, false, COLOR_TREE_CANOPY).setDepth(6);
-      this.add.arc(x, y, r * 0.72,     0, 360, false, 0x388e3c).setDepth(6);
-      this.add.arc(x, y - r * 0.22, r * 0.48, 0, 360, false, 0x43a047).setDepth(6);
+    TREE_POSITIONS.forEach(({ x, y }, index) => {
+      const r = 34 + (index % 4) * 3; // Deterministic natural size variation
+
+      // 1. Soft tree base shadow
+      this.add.ellipse(x, y + r * 0.95, r * 1.5, r * 0.55, 0x000000, 0.22).setDepth(4);
+
+      // 2. Trunk with root flare and branches
+      const trunkColor = (index % 2 === 0) ? 0x4e3014 : 0x5d3a1a;
+      // Main trunk
+      const trunk = this.add.rectangle(x, y + r * 0.55, r * 0.32, r * 0.95, trunkColor).setDepth(5);
+      // Left and right root flares
+      this.add.triangle(x - r * 0.16, y + r * 0.95, x - r * 0.32, y + r * 1.0, x - r * 0.16, y + r * 0.75, x - r * 0.16, y + r * 1.0, trunkColor).setDepth(5);
+      this.add.triangle(x + r * 0.16, y + r * 0.95, x + r * 0.32, y + r * 1.0, x + r * 0.16, y + r * 0.75, x + r * 0.16, y + r * 1.0, trunkColor).setDepth(5);
+      // Bark streak
+      this.add.rectangle(x - 2, y + r * 0.55, 2, r * 0.7, 0x36200c).setDepth(5);
+
+      // 3. Layered Foliage Clusters inside a Container for gentle breeze animation
+      const foliageGroup = this.add.container(x, y);
+      foliageGroup.setDepth(6);
+
+      // Palette variations between trees (some vibrant spring green, some deep forest)
+      const isLush = index % 3 === 0;
+      const cShadow = isLush ? 0x1b5e20 : 0x205224;
+      const cMid = isLush ? 0x2e7d32 : 0x2e7333;
+      const cLight = isLush ? 0x388e3c : 0x3d8c42;
+      const cSun = isLush ? 0x43a047 : 0x4caf50;
+      const cTopGleam = isLush ? 0x66bb6a : 0x81c784;
+
+      // Bottom back shadow canopy
+      const clusterBackL = this.add.circle(-r * 0.42, r * 0.15, r * 0.52, cShadow);
+      const clusterBackR = this.add.circle(r * 0.42, r * 0.15, r * 0.52, cShadow);
+      // Main body dome
+      const clusterBody = this.add.circle(0, 0, r * 0.75, cMid);
+      // Sunlit front clusters
+      const clusterFrontL = this.add.circle(-r * 0.28, -r * 0.12, r * 0.55, cLight);
+      const clusterFrontR = this.add.circle(r * 0.28, -r * 0.10, r * 0.50, cLight);
+      // Upper crown & sunlight specular
+      const clusterCrown = this.add.circle(0, -r * 0.35, r * 0.52, cSun);
+      const clusterHighlight = this.add.circle(-r * 0.15, -r * 0.45, r * 0.28, cTopGleam);
+
+      foliageGroup.add([
+        clusterBackL, clusterBackR, clusterBody,
+        clusterFrontL, clusterFrontR, clusterCrown, clusterHighlight
+      ]);
+
+      // Subtle breeze swaying tween with staggered duration
+      this.tweens.add({
+        targets: foliageGroup,
+        angle: { from: -1.2, to: 1.2 },
+        scaleY: { from: 1, to: 0.985 },
+        duration: 2600 + (index % 5) * 300,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+        delay: (index * 140) % 1000,
+      });
+
       this.treeColliders.push({ x, y, r: TREE_COLLIDE_R });
     });
 
+    // Decorative Adey Abeba wildflower patches (sparse, in open glades)
+    const DECOR_FLOWERS = [
+      { x: 300, y: 150 }, { x: 780, y: 260 }, { x: 180, y: 340 },
+      { x: 520, y: 350 }, { x: 860, y: 340 }, { x: 340, y: 720 }, { x: 670, y: 750 },
+    ];
+    DECOR_FLOWERS.forEach(({ x, y }) => {
+      // 3 tiny flowers grouped
+      for (let f = 0; f < 3; f++) {
+        const fx = x + (f === 0 ? 0 : f === 1 ? -6 : 7);
+        const fy = y + (f === 0 ? -4 : 4);
+        this.add.circle(fx, fy, 3.2, 0xffeb3b).setDepth(1);
+        this.add.circle(fx, fy, 1.4, 0xff6f00).setDepth(1);
+      }
+    });
+
     // Wood bundles (normal ground + mud, per difficulty)
-    const normalCount   = cfg.requiredWood - cfg.mudWoodCount;
+    const normalCount = cfg.requiredWood - cfg.mudWoodCount;
     const woodPositions = [
       ...NORMAL_WOOD.slice(0, normalCount),
       ...MUD_WOOD.slice(0, cfg.mudWoodCount),
@@ -119,10 +190,21 @@ export class GameScene extends Phaser.Scene {
 
     // Fire
     this.fire = new Fire(this, FIRE_X, FIRE_Y);
-    this.add.text(FIRE_X, FIRE_Y + 60, "\u12f3\u1218\u122b", {
-      fontSize: "18px", fontFamily: '"Noto Sans Ethiopic",Nunito,sans-serif',
-      color: "#ffee58", stroke: "#5d2a00", strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(9);
+
+    // Decorative Ethiopian title plaque for ደመራ
+    const dameraPlacard = this.add.container(FIRE_X, FIRE_Y + 62).setDepth(9);
+    const placardGfx = this.add.graphics();
+    placardGfx.fillStyle(0x1a0f05, 0.88);
+    placardGfx.fillRoundedRect(-42, -14, 84, 28, 6);
+    placardGfx.lineStyle(1.5, 0xffb300, 0.9);
+    placardGfx.strokeRoundedRect(-42, -14, 84, 28, 6);
+    const placardTxt = this.add.text(0, 0, "ደመራ", {
+      fontSize: "17px",
+      fontFamily: '"Noto Sans Ethiopic", "Fredoka One", Nunito, sans-serif',
+      color: "#ffee58",
+      fontStyle: "bold",
+    }).setOrigin(0.5);
+    dameraPlacard.add([placardGfx, placardTxt]);
 
     // Player
     this.player = new Player(this, MAP_WIDTH / 2, MAP_HEIGHT / 2);
@@ -158,6 +240,19 @@ export class GameScene extends Phaser.Scene {
       this.state.timeRemaining = 0;
       this.triggerGameOver();
       return;
+    }
+
+    // Countdown warning sound — final 10 seconds (10 down to 1)
+    if (this.state.timeRemaining <= 10 && this.state.timeRemaining > 0) {
+      const currentSec = Math.ceil(this.state.timeRemaining);
+      if (this.lastCountdownSecond !== currentSec) {
+        this.lastCountdownSecond = currentSec;
+        if (this.cache.audio.has("countdown_tick")) {
+          this.sound.play("countdown_tick", { volume: 0.75 });
+        }
+      }
+    } else {
+      this.lastCountdownSecond = -1;
     }
 
     // Mud slowdown
@@ -213,6 +308,9 @@ export class GameScene extends Phaser.Scene {
           w.collect();
           this.player.pickUpWood();
           this.state.carryingWood = true;
+          if (this.cache.audio.has("pickup_hoy")) {
+            this.sound.play("pickup_hoy", { volume: 0.85 });
+          }
           break;
         }
       }
@@ -230,8 +328,8 @@ export class GameScene extends Phaser.Scene {
 
   private resolveTreeCollisions(): void {
     for (const tree of this.treeColliders) {
-      const dx   = this.player.sprite.x - tree.x;
-      const dy   = this.player.sprite.y - tree.y;
+      const dx = this.player.sprite.x - tree.x;
+      const dy = this.player.sprite.y - tree.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const minD = PLAYER_R + tree.r;
       if (dist < minD && dist > 0) {
@@ -240,42 +338,82 @@ export class GameScene extends Phaser.Scene {
         this.player.sprite.y += (dy / dist) * push;
       }
     }
-    this.player.sprite.x = Phaser.Math.Clamp(this.player.sprite.x, 20, MAP_WIDTH  - 20);
+    this.player.sprite.x = Phaser.Math.Clamp(this.player.sprite.x, 20, MAP_WIDTH - 20);
     this.player.sprite.y = Phaser.Math.Clamp(this.player.sprite.y, 20, MAP_HEIGHT - 20);
   }
 
   private deliverWood(): void {
     this.player.deliverWood();
-    this.state.carryingWood   = false;
+    this.state.carryingWood = false;
     this.state.woodDelivered += 1;
     this.fire.onWoodAdded();
+    if (this.cache.audio.has("fire_whoosh")) {
+      this.sound.play("fire_whoosh", { volume: 0.65 });
+    }
     this.fire.growFromWood(this.state.woodDelivered, this.state.requiredWood);
-    this.state.timeRemaining += WOOD_TIME_BONUS;   // +3 s on successful delivery only
+    this.state.timeRemaining += WOOD_TIME_BONUS;   // +8 s on successful delivery only
     if (this.state.woodDelivered >= this.state.requiredWood) this.triggerVictory();
   }
 
   private triggerGameOver(): void {
     this.state.status = GameStatus.GAME_OVER;
+    this.lastCountdownSecond = -1;
+    this.sound.stopByKey("countdown_tick");
     this.player.freeze();
     this.fire.extinguish();
     this.tweens.pauseAll();
+
+    // 1. Play fire extinguishing sound ('TUSH! / PSSSH!')
+    if (this.cache.audio.has("fire_extinguish")) {
+      this.sound.play("fire_extinguish", { volume: 0.85 });
+    }
+
+    // 2. Play Amharic voice line immediately after extinguishing sound finishes (~880ms)
+    this.gameOverVoiceTimer = this.time.delayedCall(880, () => {
+      if (this.state.status === GameStatus.GAME_OVER && this.cache.audio.has("gameover_amharic")) {
+        this.sound.play("gameover_amharic", { volume: 0.95 });
+      }
+    });
+
     this.endOverlay = new GameOverOverlay(this, this.state.woodDelivered, this.state.requiredWood,
       () => this.restartLevel(), () => this.goMainMenu());
   }
 
   private triggerVictory(): void {
     this.state.status = GameStatus.VICTORY;
+    this.lastCountdownSecond = -1;
+    this.sound.stopByKey("countdown_tick");
     this.player.freeze();
+
+    // Play authentic Ethiopian group ululation ('እልልልልል!')
+    if (this.cache.audio.has("victory_ululation")) {
+      this.sound.play("victory_ululation", { volume: 0.90 });
+    }
+
     this.endOverlay = new VictoryOverlay(this, this.fire.x, this.fire.y,
       () => this.restartLevel(), () => this.goMainMenu());
   }
 
+  private stopAudioAndTimers(): void {
+    this.lastCountdownSecond = -1;
+    this.gameOverVoiceTimer?.destroy();
+    this.gameOverVoiceTimer = undefined;
+    if (this.sound) {
+      this.sound.stopByKey("countdown_tick");
+      this.sound.stopByKey("fire_extinguish");
+      this.sound.stopByKey("gameover_amharic");
+      this.sound.stopByKey("victory_ululation");
+    }
+  }
+
   private restartLevel(): void {
+    this.stopAudioAndTimers();
     this.hideMobileControls();
     this.endOverlay?.destroy?.();
     this.scene.restart();
   }
   private goMainMenu(): void {
+    this.stopAudioAndTimers();
     this.endOverlay?.destroy?.();
     this.scene.start("MainMenuScene");
   }

@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // GameConfig.ts
 // Global game constants shared across all scenes and entities.
 // Tune these values to adjust feel without searching everywhere.
@@ -6,7 +6,7 @@
 
 // ── Wood delivery time bonus ─────────────────────────────────
 /** Seconds added to the timer each time wood is delivered to the ዳመራ */
-export const WOOD_TIME_BONUS = 3;
+export const WOOD_TIME_BONUS = 8;
 
 // ── Fire / ዳመራ visual scale ───────────────────────────────────
 /** Minimum fire container scale (near zero time remaining) */
@@ -16,7 +16,7 @@ export const FIRE_MAX_SCALE = 1.35;
 /**
  * Reference time (seconds) for 100% fire scale.
  * Higher than the longest level (60 s) so fire can grow above
- * its starting size when the player delivers wood (+3 s each).
+ * its starting size when the player delivers wood (+8 s each).
  */
 export const FIRE_REFERENCE_TIME = 90;
 

@@ -5,7 +5,6 @@
 // ============================================================
 
 import Phaser from 'phaser';
-import { COLOR_MUD, MUD_ALPHA } from '../config/GameConfig';
 
 export class Mud {
   public zone: Phaser.GameObjects.Ellipse;
@@ -22,16 +21,29 @@ export class Mud {
     this.halfW = width  / 2;
     this.halfH = height / 2;
 
-    // Draw mud as a dark ellipse with some texture dots
-    this.zone = scene.add.ellipse(x, y, width, height, COLOR_MUD, MUD_ALPHA);
+    // 1. Soft outer damp soil rim
+    scene.add.ellipse(x, y, width + 14, height + 10, 0x3d2817, 0.45).setDepth(2);
+
+    // 2. Main rich mud body
+    this.zone = scene.add.ellipse(x, y, width, height, 0x54381e, 0.75);
     this.zone.setDepth(2);
 
-    // Add some darker speckles to make it look more like mud
-    const numSpeckles = Math.floor((width * height) / 1800);
+    // 3. Inner deep mud puddle
+    scene.add.ellipse(x, y + 2, width * 0.75, height * 0.70, 0x3b2410, 0.82).setDepth(2);
+
+    // 4. Mud speckles and churned earth clumps
+    const numSpeckles = Math.floor((width * height) / 1400);
     for (let i = 0; i < numSpeckles; i++) {
-      const sx = x + Phaser.Math.Between(-width * 0.38, width * 0.38);
-      const sy = y + Phaser.Math.Between(-height * 0.38, height * 0.38);
-      scene.add.arc(sx, sy, Phaser.Math.Between(3, 7), 0, 360, false, 0x5a3a10, 0.45).setDepth(2);
+      const sx = x + Phaser.Math.Between(-width * 0.36, width * 0.36);
+      const sy = y + Phaser.Math.Between(-height * 0.36, height * 0.36);
+      scene.add.arc(sx, sy, Phaser.Math.Between(2, 5), 0, 360, false, 0x271607, 0.75).setDepth(2);
+    }
+
+    // 5. Wet glossy glints / water sheen on mud
+    for (let i = 0; i < 3; i++) {
+      const gx = x + Phaser.Math.Between(-width * 0.25, width * 0.25);
+      const gy = y + Phaser.Math.Between(-height * 0.25, height * 0.25);
+      scene.add.ellipse(gx, gy, Phaser.Math.Between(8, 16), 3, 0x9e7d58, 0.45).setAngle(-12).setDepth(2);
     }
   }
 
@@ -49,3 +61,4 @@ export class Mud {
     this.zone.destroy();
   }
 }
+
