@@ -4,7 +4,7 @@
 // and game sessions, and records raw events in Supabase PostgreSQL or memory fallback.
 // ==============================================================================
 
-import { getSupabase, memoryStore, type RawEvent } from '../_lib/supabase.ts';
+import { getSupabase, memoryStore, type RawEvent } from '../lib/supabase.ts';
 
 const ALLOWED_EVENTS = new Set([
   'game_loaded',

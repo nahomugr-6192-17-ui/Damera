@@ -119,7 +119,17 @@ function setupEventListeners() {
         }),
       });
 
-      const data = await res.json();
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        if (errBox) {
+          errBox.textContent = `Server responded with HTTP ${res.status}. Please check server logs.`;
+          errBox.classList.remove('hidden');
+        }
+        return;
+      }
+
       if (!res.ok || !data.token) {
         if (errBox) {
           errBox.textContent = data.error || 'Authentication failed. Please check credentials.';
@@ -134,7 +144,7 @@ function setupEventListeners() {
       loadActiveView();
     } catch (err: any) {
       if (errBox) {
-        errBox.textContent = 'Server connection error. Please try again.';
+        errBox.textContent = err?.message ? `Connection failed: ${err.message}` : 'Server connection error. Please try again.';
         errBox.classList.remove('hidden');
       }
     }

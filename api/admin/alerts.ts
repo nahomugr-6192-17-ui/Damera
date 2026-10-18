@@ -2,8 +2,8 @@
 // api/admin/alerts.ts — System Alerts & Anomaly Notification Monitoring
 // ==============================================================================
 
-import { authenticateRequest } from '../_lib/auth.ts';
-import { memoryStore } from '../_lib/supabase.ts';
+import { authenticateRequest } from '../lib/auth.ts';
+import { memoryStore } from '../lib/supabase.ts';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

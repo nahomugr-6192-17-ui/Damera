@@ -2,8 +2,8 @@
 // api/admin/players.ts — Pseudonymous Player Analytics & Timeline
 // ==============================================================================
 
-import { authenticateRequest } from '../_lib/auth.ts';
-import { getSupabase, memoryStore, type PlayerProfile } from '../_lib/supabase.ts';
+import { authenticateRequest } from '../lib/auth.ts';
+import { getSupabase, memoryStore, type PlayerProfile } from '../lib/supabase.ts';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
