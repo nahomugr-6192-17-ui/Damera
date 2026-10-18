@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build:api": "node scripts/build-api.mjs",
+    "build": "node scripts/build-api.mjs && tsc && vite build",
     "preview": "vite preview",
     "hash-password": "node scripts/hash-password.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "@vercel/ncc": "^0.45.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   },

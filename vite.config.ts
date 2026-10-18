@@ -28,11 +28,11 @@ function apiDevMiddleware(): Plugin {
           let targetFile: string | undefined;
 
           if (pathname === '/api/analytics/collect') {
-            targetFile = './api/analytics/collect.ts';
+            targetFile = './api/analytics/collect.js';
           } else if (pathname === '/api/webhook') {
             targetFile = './api/webhook.ts';
           } else if (pathname.startsWith('/api/admin/')) {
-            targetFile = './api/admin/[route].ts';
+            targetFile = './api/admin/[route].js';
           }
 
           if (targetFile) {
