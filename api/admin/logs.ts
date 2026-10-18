@@ -2,8 +2,8 @@
 // api/admin/logs.ts — Searchable and Filterable Events & Telemetry Logs
 // ==============================================================================
 
-import { authenticateRequest } from '../_lib/auth';
-import { memoryStore, RawEvent } from '../_lib/supabase';
+import { authenticateRequest } from '../_lib/auth.ts';
+import { memoryStore, type RawEvent } from '../_lib/supabase.ts';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

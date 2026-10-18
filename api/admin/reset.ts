@@ -4,8 +4,8 @@
 // Preserves admin accounts, Telegram bot tokens, and all configuration settings.
 // ==============================================================================
 
-import { authenticateRequest } from '../_lib/auth';
-import { executeAnalyticsReset } from '../_lib/supabase';
+import { authenticateRequest } from '../_lib/auth.ts';
+import { executeAnalyticsReset } from '../_lib/supabase.ts';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

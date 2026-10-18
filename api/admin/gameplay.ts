@@ -2,8 +2,8 @@
 // api/admin/gameplay.ts — Gameplay Performance, Difficulties & Funnel Analytics
 // ==============================================================================
 
-import { authenticateRequest } from '../_lib/auth';
-import { memoryStore } from '../_lib/supabase';
+import { authenticateRequest } from '../_lib/auth.ts';
+import { memoryStore } from '../_lib/supabase.ts';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

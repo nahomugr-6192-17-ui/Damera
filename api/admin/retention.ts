@@ -2,8 +2,8 @@
 // api/admin/retention.ts — Player Retention & Engagement Cohort Analytics
 // ==============================================================================
 
-import { authenticateRequest } from '../_lib/auth';
-import { memoryStore } from '../_lib/supabase';
+import { authenticateRequest } from '../_lib/auth.ts';
+import { memoryStore } from '../_lib/supabase.ts';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
