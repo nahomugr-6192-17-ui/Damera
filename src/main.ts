@@ -12,12 +12,13 @@
 // ============================================================
 
 import Phaser from "phaser";
-import { BootScene }        from "./scenes/BootScene";
-import { MainMenuScene }    from "./scenes/MainMenuScene";
-import { HowToPlayScene }   from "./scenes/HowToPlayScene";
-import { LevelSelectScene } from "./scenes/LevelSelectScene";
-import { GameScene }        from "./scenes/GameScene";
-import { TelegramService }  from "./services/TelegramService";
+import { BootScene }         from "./scenes/BootScene";
+import { SplashScreenScene } from "./scenes/SplashScreenScene";
+import { MainMenuScene }     from "./scenes/MainMenuScene";
+import { HowToPlayScene }    from "./scenes/HowToPlayScene";
+import { LevelSelectScene }  from "./scenes/LevelSelectScene";
+import { GameScene }         from "./scenes/GameScene";
+import { TelegramService }   from "./services/TelegramService";
 import { calculateGameDimensions } from "./config/GameConfig";
 
 // 1. Initialize Telegram Mini App features (expand, header colors, fullscreen)
@@ -44,7 +45,7 @@ const config: Phaser.Types.Core.GameConfig = {
     arcade: { gravity: { x: 0, y: 0 }, debug: false },
   },
 
-  scene: [BootScene, MainMenuScene, HowToPlayScene, LevelSelectScene, GameScene],
+  scene: [BootScene, SplashScreenScene, MainMenuScene, HowToPlayScene, LevelSelectScene, GameScene],
 
   render: {
     antialias:   true,

@@ -16,6 +16,9 @@ export class BootScene extends Phaser.Scene {
     this.load.audio("victory_ululation", "assets/audio/victory_ululation.wav");
     this.load.audio("fire_extinguish", "assets/audio/fire_extinguish.wav");
     this.load.audio("gameover_amharic", "assets/audio/gameover_amharic.mp3");
+
+    // Preload studio logo artwork
+    this.load.image("papa_smurf_logo", "assets/papa_smurf_logo.png");
   }
 
   create(): void {
@@ -65,6 +68,6 @@ export class BootScene extends Phaser.Scene {
     gfx.destroy();
     rt.destroy();
 
-    this.scene.start("MainMenuScene");
+    this.scene.start("SplashScreenScene");
   }
 }
