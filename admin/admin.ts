@@ -844,10 +844,10 @@ function renderGroupedBarChart(containerId: string, labels: string[], wins: numb
     <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}">
       <line x1="${padL}" y1="${padT + chartH}" x2="${width - padR}" y2="${padT + chartH}" stroke="rgba(255,255,255,0.1)"/>
       ${labels.map((lbl, idx) => {
-        const cx = padL + idx * groupW + groupW / 2;
-        const wH = (wins[idx] / maxVal) * chartH;
-        const lH = (losses[idx] / maxVal) * chartH;
-        return `
+    const cx = padL + idx * groupW + groupW / 2;
+    const wH = (wins[idx] / maxVal) * chartH;
+    const lH = (losses[idx] / maxVal) * chartH;
+    return `
           <rect x="${cx - barW - 1}" y="${padT + chartH - wH}" width="${barW}" height="${wH}" fill="#ffb300" rx="2">
             <title>${lbl} - ${winLabel}: ${wins[idx]}</title>
           </rect>
@@ -856,7 +856,7 @@ function renderGroupedBarChart(containerId: string, labels: string[], wins: numb
           </rect>
           <text x="${cx}" y="${height - 8}" font-size="10" fill="#718771" text-anchor="middle">${lbl}</text>
         `;
-      }).join('')}
+  }).join('')}
     </svg>
   `;
 }
@@ -926,9 +926,9 @@ function renderFunnelChart(containerId: string, steps: Array<{ step: string; cou
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 12px; width: 100%; padding: 10px;">
       ${steps.map((s, idx) => {
-        const colors = ['#2e7d32', '#ffb300', '#ff7043', '#ff5722'];
-        const col = colors[idx % colors.length];
-        return `
+    const colors = ['#2e7d32', '#ffb300', '#ff7043', '#ff5722'];
+    const col = colors[idx % colors.length];
+    return `
           <div>
             <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
               <span>${s.step}</span>
@@ -939,7 +939,7 @@ function renderFunnelChart(containerId: string, steps: Array<{ step: string; cou
             </div>
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 }

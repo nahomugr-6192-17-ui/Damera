@@ -1,4 +1,4 @@
-import { defineConfig, Plugin } from 'vite';
+import { defineConfig, Plugin, loadEnv } from 'vite';
 import { resolve } from 'path';
 
 function apiDevMiddleware(): Plugin {
@@ -6,8 +6,23 @@ function apiDevMiddleware(): Plugin {
     name: 'api-dev-middleware',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
+        // Dynamically load any .env or .env.local variables into process.env
+        try {
+          const loadedEnv = loadEnv(server.config.mode || 'development', process.cwd(), '');
+          for (const [k, v] of Object.entries(loadedEnv)) {
+            process.env[k] = v;
+          }
+        } catch {}
+
         const url = new URL(req.url || '', 'http://localhost');
         const pathname = url.pathname;
+
+        // Automatically redirect /admin to /admin/ so the admin dashboard loads reliably
+        if (pathname === '/admin') {
+          res.writeHead(302, { Location: '/admin/' });
+          res.end();
+          return;
+        }
 
         if (pathname.startsWith('/api/')) {
           const routeMap: Record<string, string> = {

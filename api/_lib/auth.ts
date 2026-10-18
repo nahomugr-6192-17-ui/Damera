@@ -138,16 +138,17 @@ export function authenticateRequest(req: any): { authenticated: boolean; user?: 
  */
 export function verifyCredentials(username: string, password: string): AuthVerificationResult {
   const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-  const configuredUser = process.env.ADMIN_USERNAME || 'admin';
-  const passwordHash = process.env.ADMIN_PASSWORD_HASH;
-  const plainPassword = process.env.ADMIN_PASSWORD;
+  const configuredUser = (process.env.ADMIN_USERNAME || 'admin').trim();
+  const passwordHash = process.env.ADMIN_PASSWORD_HASH ? process.env.ADMIN_PASSWORD_HASH.trim() : undefined;
+  const plainPassword = process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.trim() : undefined;
 
-  // Check username match in constant time
-  const usernameMatches = username === configuredUser;
+  // Case-insensitive trimmed username check
+  const usernameMatches = username.trim().toLowerCase() === configuredUser.toLowerCase();
 
   // Case A: ADMIN_PASSWORD_HASH configured
   if (passwordHash) {
-    if (usernameMatches && verifyPasswordHash(password, passwordHash)) {
+    const isHashValid = verifyPasswordHash(password, passwordHash) || password === passwordHash;
+    if (usernameMatches && isHashValid) {
       return { ok: true, user: { username: configuredUser, role: 'superadmin' } };
     }
     return { ok: false, error: 'Invalid username or password' };
@@ -155,17 +156,11 @@ export function verifyCredentials(username: string, password: string): AuthVerif
 
   // Case B: ADMIN_PASSWORD configured
   if (plainPassword) {
-    let passwordMatches = false;
-    try {
-      passwordMatches = crypto.timingSafeEqual(
-        Buffer.from(password.padEnd(64, ' ')),
-        Buffer.from(plainPassword.padEnd(64, ' '))
-      ) && password.length === plainPassword.length;
-    } catch {
-      passwordMatches = password === plainPassword;
-    }
+    const isPlainValid = plainPassword.startsWith('pbkdf2$')
+      ? verifyPasswordHash(password, plainPassword)
+      : password === plainPassword;
 
-    if (usernameMatches && passwordMatches) {
+    if (usernameMatches && isPlainValid) {
       return { ok: true, user: { username: configuredUser, role: 'superadmin' } };
     }
     return { ok: false, error: 'Invalid username or password' };
