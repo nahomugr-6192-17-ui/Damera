@@ -2,7 +2,7 @@
 // api/admin/auth.ts — Admin Authentication & Token Verification Handler
 // ==============================================================================
 
-import { generateToken, verifyCredentials, authenticateRequest } from '../lib/auth.ts';
+import { generateToken, verifyCredentials, authenticateRequest } from '../auth.ts';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

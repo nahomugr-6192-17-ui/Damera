@@ -25,22 +25,16 @@ function apiDevMiddleware(): Plugin {
         }
 
         if (pathname.startsWith('/api/')) {
-          const routeMap: Record<string, string> = {
-            '/api/analytics/collect': './api/analytics/collect.ts',
-            '/api/admin/auth': './api/admin/auth.ts',
-            '/api/admin/overview': './api/admin/overview.ts',
-            '/api/admin/players': './api/admin/players.ts',
-            '/api/admin/gameplay': './api/admin/gameplay.ts',
-            '/api/admin/retention': './api/admin/retention.ts',
-            '/api/admin/health': './api/admin/health.ts',
-            '/api/admin/logs': './api/admin/logs.ts',
-            '/api/admin/alerts': './api/admin/alerts.ts',
-            '/api/admin/settings': './api/admin/settings.ts',
-            '/api/admin/reset': './api/admin/reset.ts',
-            '/api/webhook': './api/webhook.ts',
-          };
+          let targetFile: string | undefined;
 
-          const targetFile = routeMap[pathname];
+          if (pathname === '/api/analytics/collect') {
+            targetFile = './api/analytics/collect.ts';
+          } else if (pathname === '/api/webhook') {
+            targetFile = './api/webhook.ts';
+          } else if (pathname.startsWith('/api/admin/')) {
+            targetFile = './api/admin/[route].ts';
+          }
+
           if (targetFile) {
             try {
               let rawBody = '';
@@ -57,6 +51,13 @@ function apiDevMiddleware(): Plugin {
               url.searchParams.forEach((v, k) => {
                 query[k] = v;
               });
+
+              if (pathname.startsWith('/api/admin/')) {
+                const adminRoute = pathname.replace('/api/admin/', '').split('/')[0];
+                if (adminRoute && !query.route) {
+                  query.route = adminRoute;
+                }
+              }
 
               const enhancedRes = res as any;
               if (!enhancedRes.status) {
