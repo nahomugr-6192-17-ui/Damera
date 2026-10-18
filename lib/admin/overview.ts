@@ -2,8 +2,8 @@
 // api/admin/overview.ts — Overview Metrics & Time-Series Aggregations
 // ==============================================================================
 
-import { authenticateRequest } from '../auth.ts';
-import { getSupabase, memoryStore, getStorageMode } from '../supabase.ts';
+import { authenticateRequest } from '../auth';
+import { getSupabase, memoryStore, getStorageMode } from '../supabase';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

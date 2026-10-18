@@ -4,8 +4,8 @@
 // backend connectivity, and Telegram webhook status with real evidence.
 // ==============================================================================
 
-import { authenticateRequest } from '../auth.ts';
-import { memoryStore, getStorageMode } from '../supabase.ts';
+import { authenticateRequest } from '../auth';
+import { memoryStore, getStorageMode } from '../supabase';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

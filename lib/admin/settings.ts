@@ -2,8 +2,8 @@
 // api/admin/settings.ts — Admin Dashboard Settings & Data Export
 // ==============================================================================
 
-import { authenticateRequest } from '../auth.ts';
-import { getStorageMode, memoryStore } from '../supabase.ts';
+import { authenticateRequest } from '../auth';
+import { getStorageMode, memoryStore } from '../supabase';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');

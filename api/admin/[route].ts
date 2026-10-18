@@ -4,16 +4,16 @@
 // staying well below Vercel's Hobby plan 12-function limit (3 total functions).
 // ==============================================================================
 
-import handleAuth from '../../lib/admin/auth.ts';
-import handleOverview from '../../lib/admin/overview.ts';
-import handlePlayers from '../../lib/admin/players.ts';
-import handleGameplay from '../../lib/admin/gameplay.ts';
-import handleRetention from '../../lib/admin/retention.ts';
-import handleHealth from '../../lib/admin/health.ts';
-import handleLogs from '../../lib/admin/logs.ts';
-import handleAlerts from '../../lib/admin/alerts.ts';
-import handleSettings from '../../lib/admin/settings.ts';
-import handleReset from '../../lib/admin/reset.ts';
+import handleAuth from '../../lib/admin/auth';
+import handleOverview from '../../lib/admin/overview';
+import handlePlayers from '../../lib/admin/players';
+import handleGameplay from '../../lib/admin/gameplay';
+import handleRetention from '../../lib/admin/retention';
+import handleHealth from '../../lib/admin/health';
+import handleLogs from '../../lib/admin/logs';
+import handleAlerts from '../../lib/admin/alerts';
+import handleSettings from '../../lib/admin/settings';
+import handleReset from '../../lib/admin/reset';
 
 const routeHandlers: Record<string, (req: any, res: any) => Promise<any> | any> = {
   auth: handleAuth,
