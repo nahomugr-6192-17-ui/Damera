@@ -4,6 +4,7 @@
 // ============================================================
 
 import Phaser from "phaser";
+import { TelegramService } from "../services/TelegramService";
 
 export class MainMenuScene extends Phaser.Scene {
   private emberTimer?: Phaser.Time.TimerEvent;
@@ -125,9 +126,11 @@ export class MainMenuScene extends Phaser.Scene {
     const flowerR = this.add.text(135, -1, "🌼", { fontSize: "14px" }).setOrigin(0.5);
     tagGroup.add([tagText, flowerL, flowerR]);
 
-    // ── 7. Action Buttons ────────────────────────────────────
+// ── 7. Action Buttons ────────────────────────────────────
     // PLAY button (Vibrant Warm Amber/Orange with gold highlight)
     this.makeButton(cx, H * 0.61, "▶  PLAY", 0xe65100, 0xbf360c, 0xffd54f, () => {
+      // Trigger Telegram fullscreen on user gesture if available
+      TelegramService.getInstance().requestFullscreen();
       this.emberTimer?.destroy();
       this.scene.start("LevelSelectScene");
     });

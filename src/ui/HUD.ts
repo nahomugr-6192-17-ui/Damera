@@ -9,6 +9,7 @@ import type { GameState } from '../systems/GameState';
 
 export class HUD {
   private scene: Phaser.Scene;
+  private container: Phaser.GameObjects.Container;
   private panelBg: Phaser.GameObjects.Graphics;
   private tibebBar: Phaser.GameObjects.Graphics;
 
@@ -38,7 +39,7 @@ export class HUD {
     const cx = W / 2;
 
     // ── 1. Top Glassmorphic Banner ────────────────────────────
-    this.panelBg = scene.add.graphics().setScrollFactor(0).setDepth(50);
+    this.panelBg = scene.add.graphics();
     // Dark forest gradient background
     this.panelBg.fillGradientStyle(0x0a1f0d, 0x0a1f0d, 0x143518, 0x143518, 0.94);
     this.panelBg.fillRect(0, 0, W, 68);
@@ -47,7 +48,7 @@ export class HUD {
     this.panelBg.fillRect(0, 67, W, 2);
 
     // Ethiopian Tibeb Pattern at very top
-    this.tibebBar = scene.add.graphics().setScrollFactor(0).setDepth(51);
+    this.tibebBar = scene.add.graphics();
     const colors = [0x2e7d32, 0xfbc02d, 0xc62828];
     const segW = 16;
     for (let i = 0; i < Math.ceil(W / segW); i++) {
@@ -78,7 +79,7 @@ export class HUD {
 
     this.timerBox = scene.add.container(cx, 36, [
       this.timerGfx, this.timerLabel, this.timerValue
-    ]).setScrollFactor(0).setDepth(52);
+    ]);
 
     // ── 3. Left Wood Progress Badge ───────────────────────────
     const wBoxW = 200, wBoxH = 46;
@@ -105,7 +106,7 @@ export class HUD {
 
     this.woodBox = scene.add.container(wBoxX, 36, [
       this.woodGfx, this.woodText, this.woodBarFill
-    ]).setScrollFactor(0).setDepth(52);
+    ]);
 
     // ── 4. Right Objective Pill ───────────────────────────────
     this.objectiveText = scene.add.text(W - 20, 36, `🔥 Keep the ደመራ Burning!`, {
@@ -114,7 +115,47 @@ export class HUD {
       color: "#ffe082",
       backgroundColor: "#1b3b1ecc",
       padding: { x: 14, y: 7 },
-    }).setOrigin(1, 0.5).setScrollFactor(0).setDepth(52);
+    }).setOrigin(1, 0.5);
+
+    // ── 5. Master HUD Container ───────────────────────────────
+    this.container = scene.add.container(0, 0, [
+      this.panelBg, this.tibebBar, this.woodBox, this.timerBox, this.objectiveText
+    ]).setScrollFactor(0).setDepth(50);
+  }
+
+  /**
+   * Mathematically cancels camera zoom so the HUD remains crisp, 1:1 scale,
+   * and pinned perfectly to the physical top of the screen.
+   */
+  public applyCameraZoom(zoom: number): void {
+    const W = this.scene.scale.width;
+    const H = this.scene.scale.height;
+    this.container.setScale(1 / zoom);
+    this.container.x = (W / 2) - (W / 2) / zoom;
+    this.container.y = (H / 2) - (H / 2) / zoom;
+  }
+
+  /** Re-anchors HUD components across changing screen widths */
+  public relayout(): void {
+    const W = this.scene.scale.width;
+    const cx = W / 2;
+
+    this.panelBg.clear();
+    this.panelBg.fillGradientStyle(0x0a1f0d, 0x0a1f0d, 0x143518, 0x143518, 0.94);
+    this.panelBg.fillRect(0, 0, W, 68);
+    this.panelBg.fillStyle(0xfbc02d, 0.85);
+    this.panelBg.fillRect(0, 67, W, 2);
+
+    this.tibebBar.clear();
+    const colors = [0x2e7d32, 0xfbc02d, 0xc62828];
+    const segW = 16;
+    for (let i = 0; i < Math.ceil(W / segW); i++) {
+      this.tibebBar.fillStyle(colors[i % colors.length], 0.9);
+      this.tibebBar.fillRect(i * segW, 0, segW, 3);
+    }
+
+    this.timerBox.x = cx;
+    this.objectiveText.x = W - 20;
   }
 
   /** Called every frame with current game state */
@@ -178,11 +219,7 @@ export class HUD {
   destroy(): void {
     this.scene.tweens.killTweensOf(this.timerBox);
     this.scene.tweens.killTweensOf(this.woodBox);
-    this.panelBg.destroy();
-    this.tibebBar.destroy();
-    this.timerBox.destroy();
-    this.woodBox.destroy();
-    this.objectiveText.destroy();
+    this.container.destroy();
   }
 }
 

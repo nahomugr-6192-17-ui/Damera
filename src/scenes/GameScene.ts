@@ -97,7 +97,8 @@ export class GameScene extends Phaser.Scene {
 
     // Grass
     const ts = 64;
-    for (let tx = 0; tx < MAP_WIDTH; tx += ts)
+    const totalMapW = Math.max(MAP_WIDTH, this.scale.width + 64);
+    for (let tx = 0; tx < totalMapW; tx += ts)
       for (let ty = 0; ty < MAP_HEIGHT; ty += ts)
         this.add.image(tx + ts / 2, ty + ts / 2, "grass").setDisplaySize(ts, ts).setDepth(0);
 
@@ -209,12 +210,28 @@ export class GameScene extends Phaser.Scene {
     // Player
     this.player = new Player(this, MAP_WIDTH / 2, MAP_HEIGHT / 2);
 
-    // Camera
-    this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
+    // Camera setup (zoomed out so player can see surrounding forest, fire, and wood)
+    const gameZoom = 1.0;
+    const mapBoundsW = Math.max(MAP_WIDTH, this.scale.width);
+    this.cameras.main.setBounds(0, 0, mapBoundsW, MAP_HEIGHT);
     this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
+    this.cameras.main.setZoom(gameZoom);
 
-    // HUD
+    // HUD with camera zoom compensation (renders 1:1 at screen top)
     this.hud = new HUD(this, cfg.requiredWood);
+    this.hud.applyCameraZoom(gameZoom);
+
+    // Responsive resize handler for orientation changes and Telegram viewport events
+    const onResize = (gameSize: Phaser.Structs.Size) => {
+      this.cameras.main.setBounds(0, 0, Math.max(MAP_WIDTH, gameSize.width), MAP_HEIGHT);
+      this.cameras.main.setZoom(gameZoom);
+      this.hud.relayout();
+      this.hud.applyCameraZoom(gameZoom);
+    };
+    this.scale.on("resize", onResize);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off("resize", onResize);
+    });
 
     // ── Keyboard action keys ──────────────────────────────────
     // SPACE = collect wood (when not carrying + near wood)

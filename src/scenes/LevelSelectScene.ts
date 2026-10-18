@@ -12,8 +12,8 @@ export class LevelSelectScene extends Phaser.Scene {
   constructor() { super({ key: "LevelSelectScene" }); }
 
   create(): void {
-    const W  = this.scale.width;   // 960
-    const H  = this.scale.height;  // 540
+    const W = this.scale.width;   // 960
+    const H = this.scale.height;  // 540
     const cx = W / 2;
 
     // ── 1. Atmospheric Background ────────────────────────────
@@ -41,9 +41,11 @@ export class LevelSelectScene extends Phaser.Scene {
     }).setOrigin(0.5, 0);
 
     // ── 3. Three Difficulty Cards Side-by-Side ────────────────
-    const PAD   = 22;
-    const cardW = Math.floor((W - PAD * 4) / 3); // ≈ 290px each
-    const cardH = H - 150;                        // ≈ 390px
+    const PAD = 22;
+    const cardW = Math.min(300, Math.floor((W - PAD * 4) / 3)); // capped at 300px for ideal card proportions
+    const totalCardsW = 3 * cardW + 2 * PAD;
+    const startX = (W - totalCardsW) / 2 + cardW / 2;
+    const cardH = Math.min(350, H - 150);
     const cardY = 82 + cardH / 2;
 
     const cardData: {
@@ -54,35 +56,35 @@ export class LevelSelectScene extends Phaser.Scene {
       icon: string;
       tagline: string;
     }[] = [
-      {
-        key: "EASY",
-        colorTop: 0x2e7d32,
-        colorBot: 0x1b5e20,
-        borderColor: 0x81c784,
-        icon: "🌿",
-        tagline: "Relaxed Celebration",
-      },
-      {
-        key: "MEH",
-        colorTop: 0xe65100,
-        colorBot: 0xbf360c,
-        borderColor: 0xffb74d,
-        icon: "🔥",
-        tagline: "Standard Meskel",
-      },
-      {
-        key: "HARD",
-        colorTop: 0xb71c1c,
-        colorBot: 0x7f0000,
-        borderColor: 0xe57373,
-        icon: "⚡",
-        tagline: "Intense Gathering",
-      },
-    ];
+        {
+          key: "EASY",
+          colorTop: 0x2e7d32,
+          colorBot: 0x1b5e20,
+          borderColor: 0x81c784,
+          icon: "🌿",
+          tagline: "Relaxed Celebration",
+        },
+        {
+          key: "MEH",
+          colorTop: 0xe65100,
+          colorBot: 0xbf360c,
+          borderColor: 0xffb74d,
+          icon: "🔥",
+          tagline: "Standard Meskel",
+        },
+        {
+          key: "HARD",
+          colorTop: 0xb71c1c,
+          colorBot: 0x7f0000,
+          borderColor: 0xe57373,
+          icon: "⚡",
+          tagline: "Intense Gathering",
+        },
+      ];
 
     cardData.forEach(({ key, colorTop, colorBot, borderColor, icon, tagline }, i) => {
-      const cfg   = LEVELS[key];
-      const cardX = PAD + i * (cardW + PAD) + cardW / 2;
+      const cfg = LEVELS[key];
+      const cardX = startX + i * (cardW + PAD);
 
       // Card Background with drop shadow and border
       const gfx = this.add.graphics();
@@ -141,10 +143,10 @@ export class LevelSelectScene extends Phaser.Scene {
         lineSpacing: 2,
       }).setOrigin(0.5, 0);
 
-      // Stats Panel Box
+      // Stats Panel Box (reduced gap: positioned directly below subheading description)
       const statBox = this.add.graphics();
       const sbW = cardW - 32, sbH = 92;
-      const sbY = cardH / 2 - 128;
+      const sbY = -cardH / 2 + 175;
       statBox.fillStyle(0x000000, 0.35);
       statBox.fillRoundedRect(-sbW / 2, sbY, sbW, sbH, 10);
       statBox.lineStyle(1, 0xffffff, 0.15);
@@ -167,7 +169,7 @@ export class LevelSelectScene extends Phaser.Scene {
       // "SELECT" Pill Button at bottom of card
       const selBtnGfx = this.add.graphics();
       const selBtnW = cardW - 48, selBtnH = 38;
-      const selBtnY = cardH / 2 - 28;
+      const selBtnY = sbY + sbH + 32;
       selBtnGfx.fillStyle(0xffffff, 0.22);
       selBtnGfx.fillRoundedRect(-selBtnW / 2, selBtnY - selBtnH / 2, selBtnW, selBtnH, 10);
       selBtnGfx.lineStyle(1.5, 0xffffff, 0.6);
@@ -225,9 +227,9 @@ export class LevelSelectScene extends Phaser.Scene {
     backBtn.setSize(backBtnW, backBtnH).setInteractive({ useHandCursor: true });
 
     backBtn.on("pointerover", () => this.tweens.add({ targets: backBtn, scale: 1.05, duration: 80 }));
-    backBtn.on("pointerout",  () => this.tweens.add({ targets: backBtn, scale: 1.00, duration: 80 }));
+    backBtn.on("pointerout", () => this.tweens.add({ targets: backBtn, scale: 1.00, duration: 80 }));
     backBtn.on("pointerdown", () => this.tweens.add({ targets: backBtn, scale: 0.95, duration: 60 }));
-    backBtn.on("pointerup",   () => {
+    backBtn.on("pointerup", () => {
       if (this.cache.audio.has("ui_click")) {
         this.sound.play("ui_click", { volume: 0.75 });
       }

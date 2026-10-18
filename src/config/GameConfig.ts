@@ -5,10 +5,10 @@
 // ============================================================
 
 // ── Wood delivery time bonus ─────────────────────────────────
-/** Seconds added to the timer each time wood is delivered to the ዳመራ */
-export const WOOD_TIME_BONUS = 8;
+/** Seconds added to the timer each time wood is delivered to the ደመራ */
+export const WOOD_TIME_BONUS = 7;
 
-// ── Fire / ዳመራ visual scale ───────────────────────────────────
+// ── Fire / ደመራ visual scale ───────────────────────────────────
 /** Minimum fire container scale (near zero time remaining) */
 export const FIRE_MIN_SCALE = 0.28;
 /** Maximum fire container scale (time plentiful / wood delivered) */
@@ -16,18 +16,45 @@ export const FIRE_MAX_SCALE = 1.35;
 /**
  * Reference time (seconds) for 100% fire scale.
  * Higher than the longest level (60 s) so fire can grow above
- * its starting size when the player delivers wood (+8 s each).
+ * its starting size when the player delivers wood (+3 s each).
  */
 export const FIRE_REFERENCE_TIME = 90;
 
+/** Base logical canvas reference width (landscape 16:9) */
+export const BASE_GAME_WIDTH = 960;
+
+/** Base logical canvas reference height */
+export const BASE_GAME_HEIGHT = 540;
+
+/**
+ * Calculates adaptive logical canvas dimensions matching the viewport aspect ratio.
+ * On mobile landscape (aspect > 16:9 ≈ 1.7778), width expands to eliminate green side margins.
+ * On desktop or standard 16:9 / narrower screens, preserves the standard 960x540.
+ */
+export function calculateGameDimensions(): { width: number; height: number } {
+  const vw = window.innerWidth || document.documentElement.clientWidth || BASE_GAME_WIDTH;
+  const vh = window.innerHeight || document.documentElement.clientHeight || BASE_GAME_HEIGHT;
+  const aspect = vw / Math.max(1, vh);
+
+  const h = BASE_GAME_HEIGHT;
+  let w = BASE_GAME_WIDTH;
+
+  if (aspect > 1.7778) {
+    // Ultra-wide / modern mobile landscape: expand width to fill screen without stretching
+    w = Math.min(1280, Math.round(h * aspect));
+  }
+
+  return { width: w, height: h };
+}
+
 /** Phaser canvas logical width (scales to fit screen) */
-export const GAME_WIDTH = 960;
+export const GAME_WIDTH = BASE_GAME_WIDTH;
 
 /** Phaser canvas logical height */
-export const GAME_HEIGHT = 540;
+export const GAME_HEIGHT = BASE_GAME_HEIGHT;
 
-/** Map world width in pixels (larger than canvas → camera scrolls) */
-export const MAP_WIDTH = 960;
+/** Map world width in pixels (wide forest bounds accommodating modern wide screens) */
+export const MAP_WIDTH = 1152;
 
 /** Map world height in pixels */
 export const MAP_HEIGHT = 960;
@@ -58,15 +85,15 @@ export const TREE_RADIUS = 32;
 export const MUD_ALPHA = 0.55;
 
 // ── Colours ──────────────────────────────────────────────────
-export const COLOR_GRASS_DARK  = 0x3a7d3a;
+export const COLOR_GRASS_DARK = 0x3a7d3a;
 export const COLOR_GRASS_LIGHT = 0x4caf50;
-export const COLOR_MUD         = 0x7b5c2e;
-export const COLOR_FIRE_CORE   = 0xff6b00;
-export const COLOR_FIRE_OUTER  = 0xff3300;
-export const COLOR_WOOD        = 0x8b5e3c;
+export const COLOR_MUD = 0x7b5c2e;
+export const COLOR_FIRE_CORE = 0xff6b00;
+export const COLOR_FIRE_OUTER = 0xff3300;
+export const COLOR_WOOD = 0x8b5e3c;
 export const COLOR_PLAYER_BODY = 0xf4a261;
-export const COLOR_PLAYER_SHIRT= 0x2196f3;
-export const COLOR_TREE_TRUNK  = 0x5d3a1a;
+export const COLOR_PLAYER_SHIRT = 0x2196f3;
+export const COLOR_TREE_TRUNK = 0x5d3a1a;
 export const COLOR_TREE_CANOPY = 0x2e7d32;
-/** Colour used for the extinguished ዳመራ fire (game over) */
-export const COLOR_FIRE_OUT    = 0x888888;
+/** Colour used for the extinguished ደመራ fire (game over) */
+export const COLOR_FIRE_OUT = 0x888888;

@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // main.ts — Phaser game entry point
 //
 // SCALING STRATEGY (one authoritative system):
@@ -17,6 +17,15 @@ import { MainMenuScene }    from "./scenes/MainMenuScene";
 import { HowToPlayScene }   from "./scenes/HowToPlayScene";
 import { LevelSelectScene } from "./scenes/LevelSelectScene";
 import { GameScene }        from "./scenes/GameScene";
+import { TelegramService }  from "./services/TelegramService";
+import { calculateGameDimensions } from "./config/GameConfig";
+
+// 1. Initialize Telegram Mini App features (expand, header colors, fullscreen)
+const telegram = TelegramService.getInstance();
+telegram.init();
+
+// 2. Compute initial adaptive game dimensions
+const initialDims = calculateGameDimensions();
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -24,10 +33,10 @@ const config: Phaser.Types.Core.GameConfig = {
   backgroundColor: "#2e7d32",
 
   scale: {
-    mode:       Phaser.Scale.FIT,       // scale to fit, maintain aspect ratio
-    autoCenter: Phaser.Scale.CENTER_BOTH, // always centered in viewport
-    width:  960,                        // logical game width  (landscape 16:9)
-    height: 540,                        // logical game height
+    mode:       Phaser.Scale.EXPAND,   // Expands to fill screen, maintains aspect ratio without letterboxing
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width:      960,
+    height:     540,
   },
 
   physics: {
@@ -44,4 +53,20 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+(window as any).__game = game;
+
+// 3. Responsive scaling handler for viewport changes, phone rotation, and Telegram events
+function handleGameResize(): void {
+  const { width, height } = calculateGameDimensions();
+  console.log("[Resize] Viewport:", window.innerWidth, "x", window.innerHeight, "Target:", width, "x", height, "Current:", game.scale.width, "x", game.scale.height);
+  if (game.scale.width !== width || game.scale.height !== height) {
+    game.scale.resize(width, height);
+  }
+}
+
+window.addEventListener("resize", handleGameResize);
+window.addEventListener("orientationchange", () => {
+  setTimeout(handleGameResize, 150);
+});
+telegram.onViewportChange(handleGameResize);
