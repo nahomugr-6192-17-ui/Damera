@@ -7,6 +7,7 @@ import Phaser from "phaser";
 import { LEVELS } from "../config/LevelConfig";
 import type { DifficultyKey } from "../config/LevelConfig";
 import { WOOD_TIME_BONUS } from "../config/GameConfig";
+import { AnalyticsService } from "../services/AnalyticsService";
 
 export class LevelSelectScene extends Phaser.Scene {
   constructor() { super({ key: "LevelSelectScene" }); }
@@ -202,6 +203,7 @@ export class LevelSelectScene extends Phaser.Scene {
         if (this.cache.audio.has("ui_click")) {
           this.sound.play("ui_click", { volume: 0.75 });
         }
+        AnalyticsService.getInstance().trackDifficultySelected(key);
         this.registry.set("selectedLevel", key);
         this.scene.start("GameScene");
       });

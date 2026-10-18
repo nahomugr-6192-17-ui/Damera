@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAPA SMURF — Damera Game Analytics & Monitoring</title>
+  <meta name="description" content="Production Game Analytics and Monitoring Dashboard for ዳመራ — Keep the Fire Burning." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Noto+Sans+Ethiopic:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./admin.css" />
+</head>
+<body class="dark-theme">
+
+  <!-- ── 1. Login Authentication Overlay ── -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-badge">
+          <i data-lucide="flame" class="fire-icon"></i>
+          <span class="brand-name">PAPA SMURF</span>
+        </div>
+        <h2>ዳመራ Game Analytics</h2>
+        <p class="auth-subtitle">Production Administration & Real-Time Telemetry</p>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="username">Admin Username</label>
+          <input type="text" id="username" name="username" required autocomplete="username" placeholder="Enter administrator username" value="admin" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Security Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••" value="smurf2026" />
+        </div>
+
+        <div id="login-error" class="login-error hidden"></div>
+
+        <button type="submit" id="btn-login" class="btn btn-primary btn-block">
+          <span class="btn-text">Authenticate &amp; Sign In</span>
+          <span class="spinner hidden"></span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <i data-lucide="shield-check" class="shield-icon"></i>
+        <span>Secure cryptographic session verification</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. Dashboard Layout Shell ── -->
+  <div id="dashboard-shell" class="dashboard-shell hidden">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-container">
+          <div class="brand-avatar">
+            <i data-lucide="flame"></i>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">PAPA SMURF</span>
+            <span class="brand-product">ዳመራ Analytics</span>
+          </div>
+        </div>
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle Sidebar Navigation">
+          <i data-lucide="chevron-left"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li><button class="nav-item active" data-tab="overview"><i data-lucide="layout-dashboard" class="icon"></i><span class="label">Overview</span></button></li>
+          <li><button class="nav-item" data-tab="players"><i data-lucide="users" class="icon"></i><span class="label">Players</span></button></li>
+          <li><button class="nav-item" data-tab="gameplay"><i data-lucide="gamepad-2" class="icon"></i><span class="label">Gameplay Analytics</span></button></li>
+          <li><button class="nav-item" data-tab="retention"><i data-lucide="trending-up" class="icon"></i><span class="label">Retention &amp; Engagement</span></button></li>
+          <li><button class="nav-item" data-tab="health"><i data-lucide="heart-pulse" class="icon"></i><span class="label">Technical Health</span></button></li>
+          <li><button class="nav-item" data-tab="logs"><i data-lucide="scroll-text" class="icon"></i><span class="label">Events &amp; Logs</span></button></li>
+          <li><button class="nav-item" data-tab="alerts"><i data-lucide="bell" class="icon"></i><span class="label">Alerts</span><span id="nav-alert-badge" class="badge badge-warning hidden">0</span></button></li>
+          <li><button class="nav-item" data-tab="settings"><i data-lucide="settings" class="icon"></i><span class="label">Settings</span></button></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="live-status">
+          <span class="pulse-dot"></span>
+          <span class="status-label">Live Ingestion</span>
+        </div>
+        <a href="/" target="_blank" class="game-link" aria-label="Open Live Game in a new tab">
+          <i data-lucide="gamepad-2"></i>
+          <span>Open Live Game</span>
+          <i data-lucide="external-link"></i>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Navigation Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle" aria-label="Toggle mobile menu">
+            <i data-lucide="layout-dashboard"></i>
+          </button>
+          <div class="page-title-box">
+            <h1 id="page-heading">Dashboard Overview</h1>
+            <span id="storage-status-chip" class="status-chip chip-info">Checking storage...</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Date Range Selector -->
+          <div class="date-selector">
+            <button class="date-pill" data-range="today">Today</button>
+            <button class="date-pill active" data-range="7d">7 Days</button>
+            <button class="date-pill" data-range="30d">30 Days</button>
+            <button class="date-pill" data-range="90d">90 Days</button>
+          </div>
+
+          <!-- Refresh Action -->
+          <button id="btn-refresh" class="btn btn-secondary btn-icon" title="Refresh metrics" aria-label="Refresh telemetry data">
+            <i data-lucide="refresh-cw" class="icon-refresh"></i>
+          </button>
+
+          <!-- Administrator Profile -->
+          <div class="admin-profile">
+            <div class="profile-avatar">PS</div>
+            <div class="profile-info">
+              <span id="profile-name" class="profile-name">Papa Smurf</span>
+              <span class="profile-role">Superadmin</span>
+            </div>
+            <button id="btn-logout" class="btn-logout" title="Sign out" aria-label="Sign out">
+              <i data-lucide="log-out"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tracking-Period Reference Banner -->
+      <div id="tracking-reference-banner" class="tracking-reference-banner hidden">
+        <div class="ref-content">
+          <i data-lucide="calendar-days" class="ref-icon"></i>
+          <span id="tracking-reference-text">Fresh tracking period started.</span>
+        </div>
+      </div>
+
+      <!-- Active Section Viewports -->
+      <div class="view-viewport">
+
+        <!-- ── TAB 1: OVERVIEW ── -->
+        <section id="view-overview" class="tab-view active">
+          <!-- KPI Cards Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card" data-metric="total_players" title="Total lifetime unique pseudonymous players detected">
+              <div class="kpi-header">
+                <span class="kpi-title">Total Players</span>
+                <i data-lucide="users" class="kpi-icon"></i>
+              </div>
+              <div class="kpi-value" id="kpi-total-players">—</div>
+              <div class="kpi-meta">
+                <span class="kpi-badge badge-green" id="kpi-player-growth">Active</span>
+                <span class="kpi-subtext">Lifetime unique</span>
+              </div>
+            </div>
+
+            <div class="kpi-card" data-metric="dau" title="Unique players with recorded events in selected period">
+              <div class="kpi-header">
+                <span class="kpi-title">Active Players</span>
+                <i data-lucide="activity" class="kpi-icon"></i>
+              </div>
+              <div class="kpi-value" id="kpi-dau">—</div>
+              <div class="kpi-meta">
+                <span class="kpi-subtext">Selected period DAU/WAU</span>
+              </div>
+            </div>
+
+            <div class="kpi-card highlight-card" data-metric="live_online" title="Players with heartbeat or gameplay activity within the last 2 minutes">
+              <div class="kpi-header">
+                <span class="kpi-title">Currently Online</span>
+                <span class="pulse-indicator"></span>
+              </div>
+              <div class="kpi-value text-accent" id="kpi-live-online">0</div>
+              <div class="kpi-meta">
+                <span class="kpi-subtext">Activity within 2 min</span>
+              </div>
+            </div>
+
+            <div class="kpi-card" data-metric="sessions" title="Total game sessions launched">
+              <div class="kpi-header">
+                <span class="kpi-title">Total Sessions</span>
+                <i data-lucide="gamepad-2" class="kpi-icon"></i>
+              </div>
+              <div class="kpi-value" id="kpi-total-sessions">—</div>
+              <div class="kpi-meta">
+                <span class="kpi-badge badge-green" id="kpi-session-growth">Active</span>
+                <span class="kpi-subtext">Gameplay runs</span>
+              </div>
+            </div>
+
+            <div class="kpi-card" data-metric="avg_duration" title="Average duration of a played game session">
+              <div class="kpi-header">
+                <span class="kpi-title">Avg Duration</span>
+                <i data-lucide="clock" class="kpi-icon"></i>
+              </div>
+              <div class="kpi-value" id="kpi-avg-duration">—</div>
+              <div class="kpi-meta">
+                <span class="kpi-subtext">Seconds per session</span>
+              </div>
+            </div>
+
+            <div class="kpi-card" data-metric="victory_rate" title="Percentage of completed games ending in victorious ዳመራ lighting">
+              <div class="kpi-header">
+                <span class="kpi-title">Victory Rate</span>
+                <i data-lucide="trophy" class="kpi-icon"></i>
+              </div>
+              <div class="kpi-value text-gold" id="kpi-victory-rate">—</div>
+              <div class="kpi-meta">
+                <span class="kpi-subtext" id="kpi-game-over-rate">Game Over: —</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row 1 -->
+          <div class="charts-row">
+            <div class="chart-panel">
+              <div class="panel-header">
+                <div class="panel-title-box">
+                  <h3>Active Players Over Time</h3>
+                  <p class="panel-desc">Daily trend of distinct active players</p>
+                </div>
+              </div>
+              <div id="chart-players" class="chart-canvas-container"></div>
+            </div>
+
+            <div class="chart-panel">
+              <div class="panel-header">
+                <div class="panel-title-box">
+                  <h3>Game Sessions &amp; Outcomes</h3>
+                  <p class="panel-desc">Victories vs Game Overs in period</p>
+                </div>
+              </div>
+              <div id="chart-sessions" class="chart-canvas-container"></div>
+            </div>
+          </div>
+
+          <!-- Charts Row 2 -->
+          <div class="charts-row">
+            <div class="chart-panel">
+              <div class="panel-header">
+                <div class="panel-title-box">
+                  <h3>New vs Returning Players</h3>
+                  <p class="panel-desc">Player acquisition and loyalty ratio</p>
+                </div>
+              </div>
+              <div id="chart-players-ratio" class="chart-canvas-container"></div>
+            </div>
+
+            <div class="chart-panel">
+              <div class="panel-header">
+                <div class="panel-title-box">
+                  <h3>Average Session Duration</h3>
+                  <p class="panel-desc">Seconds survived / played per day</p>
+                </div>
+              </div>
+              <div id="chart-duration" class="chart-canvas-container"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 2: PLAYERS ── -->
+        <section id="view-players" class="tab-view">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="search-box">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="player-search-input" placeholder="Search by anonymous player ID..." aria-label="Search players by ID" />
+              </div>
+              <div class="table-actions">
+                <select id="player-sort-select" class="form-select" aria-label="Sort players">
+                  <option value="last_seen">Sort by Last Seen</option>
+                  <option value="total_sessions">Sort by Sessions</option>
+                  <option value="victories">Sort by Victories</option>
+                  <option value="first_seen">Sort by First Seen</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Anonymous Player ID</th>
+                    <th>Type</th>
+                    <th>Platform</th>
+                    <th>Sessions</th>
+                    <th>Total Play Time</th>
+                    <th>Victories</th>
+                    <th>Win Rate</th>
+                    <th>Preferred Diff</th>
+                    <th>First Seen</th>
+                    <th>Last Seen</th>
+                  </tr>
+                </thead>
+                <tbody id="players-table-body">
+                  <tr><td colspan="10" class="text-center">Loading player profiles...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-pagination">
+              <span id="player-pagination-info" class="pagination-info">Showing 0 of 0</span>
+              <div class="pagination-buttons">
+                <button id="btn-player-prev" class="btn btn-secondary btn-sm" disabled aria-label="Previous player page">
+                  <i data-lucide="chevron-left"></i> Previous
+                </button>
+                <button id="btn-player-next" class="btn btn-secondary btn-sm" disabled aria-label="Next player page">
+                  Next <i data-lucide="chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 3: GAMEPLAY ANALYTICS ── -->
+        <section id="view-gameplay" class="tab-view">
+          <!-- Difficulty Cards -->
+          <div class="difficulty-grid">
+            <div class="diff-card diff-easy">
+              <div class="diff-header">
+                <span class="diff-tag">EASY</span>
+                <span class="diff-badge">120s • 5 Wood</span>
+              </div>
+              <div class="diff-stats">
+                <div class="stat-line"><span>Starts:</span><strong id="easy-starts">0</strong></div>
+                <div class="stat-line"><span>Victories:</span><strong id="easy-wins">0</strong></div>
+                <div class="stat-line"><span>Victory Rate:</span><strong class="text-green" id="easy-winrate">0%</strong></div>
+                <div class="stat-line"><span>Avg Time Remaining:</span><strong id="easy-timeremain">0s</strong></div>
+              </div>
+            </div>
+
+            <div class="diff-card diff-meh">
+              <div class="diff-header">
+                <span class="diff-tag">MEH</span>
+                <span class="diff-badge">90s • 7 Wood</span>
+              </div>
+              <div class="diff-stats">
+                <div class="stat-line"><span>Starts:</span><strong id="meh-starts">0</strong></div>
+                <div class="stat-line"><span>Victories:</span><strong id="meh-wins">0</strong></div>
+                <div class="stat-line"><span>Victory Rate:</span><strong class="text-gold" id="meh-winrate">0%</strong></div>
+                <div class="stat-line"><span>Avg Time Remaining:</span><strong id="meh-timeremain">0s</strong></div>
+              </div>
+            </div>
+
+            <div class="diff-card diff-hard">
+              <div class="diff-header">
+                <span class="diff-tag">HARD</span>
+                <span class="diff-badge">70s • 9 Wood</span>
+              </div>
+              <div class="diff-stats">
+                <div class="stat-line"><span>Starts:</span><strong id="hard-starts">0</strong></div>
+                <div class="stat-line"><span>Victories:</span><strong id="hard-wins">0</strong></div>
+                <div class="stat-line"><span>Victory Rate:</span><strong class="text-red" id="hard-winrate">0%</strong></div>
+                <div class="stat-line"><span>Avg Time Remaining:</span><strong id="hard-timeremain">0s</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Wood Mechanics & Funnel -->
+          <div class="charts-row">
+            <div class="chart-panel">
+              <div class="panel-header">
+                <div class="panel-title-box">
+                  <h3>Conversion Funnel</h3>
+                  <p class="panel-desc">Menu → Difficulty → Play → Outcome</p>
+                </div>
+              </div>
+              <div id="chart-funnel" class="chart-canvas-container"></div>
+            </div>
+
+            <div class="chart-panel">
+              <div class="panel-header">
+                <div class="panel-title-box">
+                  <h3>Wood Deliveries &amp; Mechanics</h3>
+                  <p class="panel-desc">Pickups vs Verified Bonfire Deliveries</p>
+                </div>
+              </div>
+              <div class="wood-metrics-box">
+                <div class="metric-block">
+                  <span class="m-val text-accent" id="wood-total-delivered">0</span>
+                  <span class="m-lbl">Wood Bundles Delivered to Fire</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-val" id="wood-avg-game">0.0</span>
+                  <span class="m-lbl">Avg Delivered per Completed Game</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-val" id="wood-restarts">0</span>
+                  <span class="m-lbl">Level Restarts Triggered</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-val text-red" id="wood-abandonment">0%</span>
+                  <span class="m-lbl">Early Game Abandonment Rate</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 4: RETENTION & ENGAGEMENT ── -->
+        <section id="view-retention" class="tab-view">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-header"><span class="kpi-title">Day 1 Retention</span><i data-lucide="calendar-days" class="kpi-icon"></i></div>
+              <div class="kpi-value text-green" id="ret-d1">—</div>
+              <div class="kpi-meta"><span class="kpi-subtext">Return next calendar day</span></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-header"><span class="kpi-title">Day 7 Retention</span><i data-lucide="calendar-days" class="kpi-icon"></i></div>
+              <div class="kpi-value text-gold" id="ret-d7">—</div>
+              <div class="kpi-meta"><span class="kpi-subtext">Active after 7 days</span></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-header"><span class="kpi-title">Day 30 Retention</span><i data-lucide="calendar-days" class="kpi-icon"></i></div>
+              <div class="kpi-value" id="ret-d30">—</div>
+              <div class="kpi-meta"><span class="kpi-subtext">Active after 30 days</span></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-header"><span class="kpi-title">Median Play Duration</span><i data-lucide="clock" class="kpi-icon"></i></div>
+              <div class="kpi-value" id="ret-median-dur">—</div>
+              <div class="kpi-meta"><span class="kpi-subtext">50th percentile play time</span></div>
+            </div>
+          </div>
+
+          <div class="charts-row">
+            <div class="chart-panel">
+              <div class="panel-header">
+                <h3>Cohort Retention Heatmap</h3>
+                <p class="panel-desc">Weekly cohort performance tracking</p>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table cohort-table">
+                  <thead>
+                    <tr><th>Cohort</th><th>Players</th><th>Day 1</th><th>Day 7</th><th>Day 14</th><th>Day 30</th></tr>
+                  </thead>
+                  <tbody id="cohorts-table-body">
+                    <tr><td colspan="6" class="text-center">Calculating cohorts...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="chart-panel">
+              <div class="panel-header">
+                <h3>Session Frequency Distribution</h3>
+                <p class="panel-desc">Total play runs per unique player</p>
+              </div>
+              <div id="chart-frequency" class="chart-canvas-container"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 5: TECHNICAL HEALTH ── -->
+        <section id="view-health" class="tab-view">
+          <div class="component-health-grid" id="component-health-grid">
+            <!-- Dynamic health cards -->
+          </div>
+
+          <div class="panel-row">
+            <div class="chart-panel">
+              <div class="panel-header">
+                <h3>System Telemetry Evidence</h3>
+                <p class="panel-desc">Real verified events from game clients and endpoints</p>
+              </div>
+              <div class="telemetry-evidence-box">
+                <div class="evidence-item">
+                  <span class="e-label">Latest Successful Game Load:</span>
+                  <strong id="health-game-load">—</strong>
+                </div>
+                <div class="evidence-item">
+                  <span class="e-label">Latest Ingestion Event:</span>
+                  <strong id="health-ingestion">—</strong>
+                </div>
+                <div class="evidence-item">
+                  <span class="e-label">Total Ingested Events:</span>
+                  <strong id="health-total-events">0</strong>
+                </div>
+                <div class="evidence-item">
+                  <span class="e-label">Error Rate (24h):</span>
+                  <strong class="text-green" id="health-error-rate">0.00%</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-panel">
+              <div class="panel-header">
+                <h3>Recent Client-Side Exceptions</h3>
+                <p class="panel-desc">Errors caught via window.onerror and unhandledrejection</p>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Time</th><th>Error Message</th><th>Platform</th><th>Context</th></tr>
+                  </thead>
+                  <tbody id="health-errors-table">
+                    <tr><td colspan="4" class="text-center text-green">No client errors recorded. System healthy.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 6: EVENTS & LOGS ── -->
+        <section id="view-logs" class="tab-view">
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="search-box">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="logs-search-input" placeholder="Search event name, player ID, session ID..." aria-label="Search telemetry events" />
+              </div>
+              <div class="table-actions">
+                <select id="logs-event-select" class="form-select" aria-label="Filter by event type">
+                  <option value="all">All Event Types</option>
+                  <option value="game_loaded">game_loaded</option>
+                  <option value="main_menu_viewed">main_menu_viewed</option>
+                  <option value="how_to_play_opened">how_to_play_opened</option>
+                  <option value="difficulty_selected">difficulty_selected</option>
+                  <option value="game_started">game_started</option>
+                  <option value="wood_collected">wood_collected</option>
+                  <option value="wood_delivered">wood_delivered</option>
+                  <option value="game_won">game_won</option>
+                  <option value="game_over">game_over</option>
+                  <option value="game_restarted">game_restarted</option>
+                  <option value="session_ended">session_ended</option>
+                  <option value="mini_app_opened">mini_app_opened</option>
+                  <option value="client_error">client_error</option>
+                </select>
+                <select id="logs-platform-select" class="form-select" aria-label="Filter by platform">
+                  <option value="all">All Platforms</option>
+                  <option value="mobile">Mobile</option>
+                  <option value="desktop">Desktop</option>
+                  <option value="tablet">Tablet</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>Event Type</th>
+                    <th>Anonymous Player</th>
+                    <th>Session ID</th>
+                    <th>Difficulty</th>
+                    <th>Platform</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody id="logs-table-body">
+                  <tr><td colspan="7" class="text-center">Loading telemetry logs...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-pagination">
+              <span id="logs-pagination-info" class="pagination-info">Showing 0 of 0</span>
+              <div class="pagination-buttons">
+                <button id="btn-logs-prev" class="btn btn-secondary btn-sm" disabled aria-label="Previous logs page">
+                  <i data-lucide="chevron-left"></i> Previous
+                </button>
+                <button id="btn-logs-next" class="btn btn-secondary btn-sm" disabled aria-label="Next logs page">
+                  Next <i data-lucide="chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 7: ALERTS ── -->
+        <section id="view-alerts" class="tab-view">
+          <div class="alerts-layout">
+            <div class="chart-panel">
+              <div class="panel-header">
+                <h3>Active Notifications &amp; Warnings</h3>
+                <p class="panel-desc">Real-time alerts triggered by monitoring rules</p>
+              </div>
+              <div id="active-alerts-list" class="active-alerts-list">
+                <!-- Injected alerts -->
+              </div>
+            </div>
+
+            <div class="chart-panel">
+              <div class="panel-header">
+                <h3>Configured Monitoring Rules</h3>
+                <p class="panel-desc">Threshold rules evaluating technical and gameplay health</p>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Rule Name</th><th>Metric</th><th>Condition</th><th>Severity</th><th>Status</th></tr>
+                  </thead>
+                  <tbody id="alert-rules-body">
+                    <!-- Injected rules -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── TAB 8: SETTINGS ── -->
+        <section id="view-settings" class="tab-view">
+          <div class="settings-card">
+            <h3>PAPA SMURF — Damera Production Configuration</h3>
+            <p class="panel-desc">Environment state, database credentials, and Telegram integrations</p>
+
+            <div class="settings-grid">
+              <div class="setting-item">
+                <div class="s-info">
+                  <strong>Managed PostgreSQL Database (Supabase)</strong>
+                  <p>Enables persistent analytics across browser sessions and deployments.</p>
+                </div>
+                <div class="s-action">
+                  <span id="setting-db-badge" class="badge badge-info">Checking...</span>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="s-info">
+                  <strong>Telegram Webhook Integration</strong>
+                  <p>Handles /start updates and launches the Telegram Mini App.</p>
+                </div>
+                <div class="s-action">
+                  <span id="setting-tg-badge" class="badge badge-info">Checking...</span>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="s-info">
+                  <strong>Telemetry Data Export</strong>
+                  <p>Download full pseudonymous events and player profiles in JSON format.</p>
+                </div>
+                <div class="s-action">
+                  <button id="btn-export-json" class="btn btn-secondary">
+                    <i data-lucide="download"></i>
+                    <span>Export JSON</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Fresh Analytics Reset Action -->
+              <div class="setting-item danger-item">
+                <div class="s-info">
+                  <strong class="text-red">Reset Analytics Data (Start Fresh)</strong>
+                  <p>Purges raw events, player profiles, sessions, and alerts to begin a brand new tracking period. Preserves admin logins and Telegram configuration.</p>
+                </div>
+                <div class="s-action">
+                  <button id="btn-open-reset-modal" class="btn btn-danger">
+                    <i data-lucide="trash-2"></i>
+                    <span>Reset Analytics Data</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="database-guide-box">
+              <div class="guide-header">
+                <i data-lucide="scroll-text"></i>
+                <h4>Supabase Quick Setup Instructions</h4>
+              </div>
+              <ol>
+                <li>Open your Supabase project dashboard at <code>https://supabase.com</code></li>
+                <li>Go to the <strong>SQL Editor</strong> and execute the script in <code>supabase/schema.sql</code></li>
+                <li>In Vercel project settings, set two environment variables:
+                  <ul>
+                    <li><code>SUPABASE_URL</code> = <code>https://your-project.supabase.co</code></li>
+                    <li><code>SUPABASE_SERVICE_ROLE_KEY</code> = <code>your-service-role-secret-key</code></li>
+                  </ul>
+                </li>
+                <li>Redeploy on Vercel — the dashboard will instantly switch to cloud PostgreSQL persistence!</li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ── 3. Reset Confirmation Modal ── -->
+  <div id="reset-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <i data-lucide="triangle-alert" class="modal-icon text-red"></i>
+        <h3>Reset All Analytics Data?</h3>
+      </div>
+      <div class="modal-body">
+        <p>This action will permanently delete all historical raw telemetry events, player profiles, sessions, and alerts. This action <strong>cannot be undone</strong>.</p>
+        <p class="modal-note">Administrator accounts and Telegram configurations will <strong>not</strong> be affected.</p>
+        <div class="form-group modal-confirm-box">
+          <label for="reset-confirm-input">Type <code class="highlight-code">RESET_DAMERA_ANALYTICS</code> to confirm:</label>
+          <input type="text" id="reset-confirm-input" placeholder="RESET_DAMERA_ANALYTICS" autocomplete="off" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cancel-reset" class="btn btn-secondary">Cancel</button>
+        <button id="btn-confirm-reset" class="btn btn-danger" disabled>
+          <i data-lucide="trash-2"></i>
+          <span>Confirm &amp; Reset All Analytics</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./admin.ts"></script>
+</body>
+</html>

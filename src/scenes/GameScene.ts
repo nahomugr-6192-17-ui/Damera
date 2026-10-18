@@ -22,6 +22,7 @@ import { GameStatus, createGameState } from "../systems/GameState";
 import type { GameState } from "../systems/GameState";
 import { LEVELS } from "../config/LevelConfig";
 import type { DifficultyKey } from "../config/LevelConfig";
+import { AnalyticsService } from "../services/AnalyticsService";
 import {
   MAP_WIDTH, MAP_HEIGHT, WOOD_TIME_BONUS,
   COLOR_TREE_TRUNK, COLOR_TREE_CANOPY,
@@ -189,6 +190,7 @@ export class GameScene extends Phaser.Scene {
     this.levelKey = (this.registry.get("selectedLevel") as DifficultyKey) ?? "EASY";
     const cfg = LEVELS[this.levelKey];
     this.state = createGameState(cfg.time, cfg.requiredWood);
+    AnalyticsService.getInstance().trackGameStarted(this.levelKey);
     this.endOverlay = null;
     this.lastCountdownSecond = -1;
     this.stopAudioAndTimers();
@@ -413,6 +415,9 @@ export class GameScene extends Phaser.Scene {
           w.collect();
           this.player.pickUpWood();
           this.state.carryingWood = true;
+          AnalyticsService.getInstance().trackWoodCollected(
+            this.woodItems.filter(item => !item.isCollected).length
+          );
           if (this.cache.audio.has("pickup_hoy")) {
             this.sound.play("pickup_hoy", { volume: 0.85 });
           }
@@ -452,6 +457,11 @@ export class GameScene extends Phaser.Scene {
     this.state.carryingWood = false;
     this.state.woodDelivered += 1;
     this.fire.onWoodAdded();
+    AnalyticsService.getInstance().trackWoodDelivered(
+      this.state.woodDelivered,
+      this.state.requiredWood,
+      this.state.timeRemaining
+    );
     if (this.cache.audio.has("fire_whoosh")) {
       this.sound.play("fire_whoosh", { volume: 0.65 });
     }
@@ -462,6 +472,10 @@ export class GameScene extends Phaser.Scene {
 
   private triggerGameOver(): void {
     this.state.status = GameStatus.GAME_OVER;
+    AnalyticsService.getInstance().trackGameOver(
+      this.state.woodDelivered,
+      this.state.requiredWood
+    );
     this.lastCountdownSecond = -1;
     this.sound.stopByKey("countdown_tick");
     this.player.freeze();
@@ -486,6 +500,11 @@ export class GameScene extends Phaser.Scene {
 
   private triggerVictory(): void {
     this.state.status = GameStatus.VICTORY;
+    AnalyticsService.getInstance().trackGameWon(
+      this.state.woodDelivered,
+      this.state.requiredWood,
+      this.state.timeRemaining
+    );
     this.lastCountdownSecond = -1;
     this.sound.stopByKey("countdown_tick");
     this.player.freeze();
@@ -514,6 +533,7 @@ export class GameScene extends Phaser.Scene {
   private restartLevel(): void {
     this.stopAudioAndTimers();
     this.hideMobileControls();
+    AnalyticsService.getInstance().trackGameRestarted(this.levelKey);
     this.endOverlay?.destroy?.();
     this.scene.restart();
   }

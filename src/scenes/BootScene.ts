@@ -3,6 +3,7 @@
 // ============================================================
 
 import Phaser from "phaser";
+import { AnalyticsService } from "../services/AnalyticsService";
 
 export class BootScene extends Phaser.Scene {
   constructor() { super({ key: "BootScene" }); }
@@ -67,6 +68,9 @@ export class BootScene extends Phaser.Scene {
     rt.saveTexture("grass");
     gfx.destroy();
     rt.destroy();
+
+    // Telemetry: Game loaded successfully
+    AnalyticsService.getInstance().trackGameLoaded();
 
     this.scene.start("SplashScreenScene");
   }

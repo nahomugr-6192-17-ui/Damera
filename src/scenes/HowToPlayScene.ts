@@ -6,11 +6,14 @@
 
 import Phaser from "phaser";
 import { WOOD_TIME_BONUS } from "../config/GameConfig";
+import { AnalyticsService } from "../services/AnalyticsService";
 
 export class HowToPlayScene extends Phaser.Scene {
   constructor() { super({ key: "HowToPlayScene" }); }
 
   create(): void {
+    AnalyticsService.getInstance().trackHowToPlay();
+
     const W = this.scale.width;   // 960
     const H = this.scale.height;  // 540
     const cx = W / 2;

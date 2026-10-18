@@ -5,6 +5,7 @@
 
 import Phaser from "phaser";
 import { TelegramService } from "../services/TelegramService";
+import { AnalyticsService } from "../services/AnalyticsService";
 
 export class MainMenuScene extends Phaser.Scene {
   private emberTimer?: Phaser.Time.TimerEvent;
@@ -12,6 +13,8 @@ export class MainMenuScene extends Phaser.Scene {
   constructor() { super({ key: "MainMenuScene" }); }
 
   create(): void {
+    AnalyticsService.getInstance().trackMainMenu();
+
     const W = this.scale.width;
     const H = this.scale.height;
     const cx = W / 2;

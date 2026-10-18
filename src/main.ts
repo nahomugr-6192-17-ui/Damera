@@ -19,11 +19,16 @@ import { HowToPlayScene }    from "./scenes/HowToPlayScene";
 import { LevelSelectScene }  from "./scenes/LevelSelectScene";
 import { GameScene }         from "./scenes/GameScene";
 import { TelegramService }   from "./services/TelegramService";
+import { AnalyticsService }  from "./services/AnalyticsService";
 import { calculateGameDimensions } from "./config/GameConfig";
 
 // 1. Initialize Telegram Mini App features (expand, header colors, fullscreen)
 const telegram = TelegramService.getInstance();
 telegram.init();
+
+// 2. Initialize in-game telemetry & lifecycle analytics
+const analytics = AnalyticsService.getInstance();
+analytics.init();
 
 // 2. Compute initial adaptive game dimensions
 const initialDims = calculateGameDimensions();
