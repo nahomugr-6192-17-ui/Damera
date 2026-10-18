@@ -49,8 +49,8 @@ export default async function handler(req: any, res: any) {
         const chatId = message.chat.id;
 
         const welcomeText =
-`🔥 Welcome to Damera!
-A game by Papa Smurf 🌲
+          `🔥 Welcome to ደመራ!
+A game by Papa Smurf 💙
 Gather wood, race against time, and keep the ዳመራ burning!
 Can you save the fire before time runs out? 😉`;
 
