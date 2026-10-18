@@ -120,11 +120,13 @@ function setupEventListeners() {
       });
 
       let data: any = null;
+      let rawText = '';
       try {
-        data = await res.json();
+        rawText = await res.text();
+        data = JSON.parse(rawText);
       } catch {
         if (errBox) {
-          errBox.textContent = `Server responded with HTTP ${res.status}. Please check server logs.`;
+          errBox.textContent = rawText && rawText.length < 150 ? rawText : `Server responded with HTTP ${res.status}. Please check server logs.`;
           errBox.classList.remove('hidden');
         }
         return;

@@ -18,5 +18,5 @@
     "noFallthroughCasesInSwitch": true,
     "strict": true
   },
-  "include": ["src", "admin", "api", "lib"]
+  "include": ["src", "admin", "api"]
 }
