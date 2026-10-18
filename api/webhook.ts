@@ -50,7 +50,7 @@ export default async function handler(req: any, res: any) {
 
         const welcomeText =
           `🔥 Welcome to ደመራ!
-A game by Papa Smurf 💙
+
 Gather wood, race against time, and keep the ዳመራ burning!
 Can you save the fire before time runs out? 😉`;
 
