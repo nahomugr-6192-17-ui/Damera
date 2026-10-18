@@ -136,6 +136,9 @@ export class TelegramService {
   }
 
   private notifyViewportChange(): void {
+    if (this.isInsideTelegram && typeof this.tg?.expand === "function" && !this.tg.isExpanded) {
+      try { this.tg.expand(); } catch (_) {}
+    }
     for (const cb of this.viewportCallbacks) {
       try {
         cb();

@@ -32,16 +32,16 @@ export const BASE_GAME_HEIGHT = 540;
  * On desktop or standard 16:9 / narrower screens, preserves the standard 960x540.
  */
 export function calculateGameDimensions(): { width: number; height: number } {
-  const vw = window.innerWidth || document.documentElement.clientWidth || BASE_GAME_WIDTH;
-  const vh = window.innerHeight || document.documentElement.clientHeight || BASE_GAME_HEIGHT;
+  const vw = window.visualViewport?.width || window.innerWidth || document.documentElement.clientWidth || BASE_GAME_WIDTH;
+  const vh = window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || BASE_GAME_HEIGHT;
   const aspect = vw / Math.max(1, vh);
 
   const h = BASE_GAME_HEIGHT;
   let w = BASE_GAME_WIDTH;
 
+  // Modern mobile landscape or ultra-wide displays (aspect > 16:9 ≈ 1.7778)
   if (aspect > 1.7778) {
-    // Ultra-wide / modern mobile landscape: expand width to fill screen without stretching
-    w = Math.min(1280, Math.round(h * aspect));
+    w = Math.round(h * aspect);
   }
 
   return { width: w, height: h };

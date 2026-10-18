@@ -235,6 +235,23 @@ export class LevelSelectScene extends Phaser.Scene {
       }
       this.scene.start("MainMenuScene");
     });
+
+    // Responsive resize handler for orientation change
+    let lastW = W;
+    let lastH = H;
+    const onResize = () => {
+      const curW = this.scale.width;
+      const curH = this.scale.height;
+      if (curW !== lastW || curH !== lastH) {
+        lastW = curW;
+        lastH = curH;
+        this.scene.restart();
+      }
+    };
+    this.scale.on("resize", onResize);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off("resize", onResize);
+    });
   }
 
   private drawTibebBorder(W: number): void {

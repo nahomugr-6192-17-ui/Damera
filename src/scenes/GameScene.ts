@@ -43,13 +43,14 @@ const MUD_ZONES = [
   { x: 850, y: 740, w: 130, h: 75 },
 ];
 
-const NORMAL_WOOD: { x: number; y: number }[] = [
+// Pre-vetted fallback positions guaranteed to be safe
+const NORMAL_WOOD: Point[] = [
   { x: 200, y: 280 }, { x: 450, y: 270 }, { x: 630, y: 230 }, { x: 920, y: 280 },
   { x: 200, y: 510 }, { x: 430, y: 490 }, { x: 700, y: 520 }, { x: 920, y: 450 },
   { x: 500, y: 600 },
 ];
 
-const MUD_WOOD: { x: number; y: number }[] = [
+const MUD_WOOD: Point[] = [
   { x: 380, y: 605 },  // zone 0
   { x: 600, y: 565 },  // zone 1
   { x: 810, y: 630 },  // zone 2
@@ -58,8 +59,109 @@ const MUD_WOOD: { x: number; y: number }[] = [
   { x: 940, y: 785 },  // zone 4 second (HARD only)
 ];
 
-const FIRE_X = 150;
-const FIRE_Y = 820;
+interface Point { x: number; y: number; }
+
+function dist(x1: number, y1: number, x2: number, y2: number): number {
+  return Math.hypot(x1 - x2, y1 - y2);
+}
+
+function isInsideMud(x: number, y: number, margin = 0): boolean {
+  return MUD_ZONES.some(m =>
+    x >= m.x - margin && x <= m.x + m.w + margin &&
+    y >= m.y - margin && y <= m.y + m.h + margin
+  );
+}
+
+function isNearTree(x: number, y: number, minDistance: number): boolean {
+  return TREE_POSITIONS.some(t => dist(x, y, t.x, t.y) < minDistance);
+}
+
+/**
+ * Randomizes initial positions of ደመራ fire and collectible wood bundles.
+ * Guarantees safe spacing, respects tree collisions, mud zones, map bounds,
+ * and maintains exact required wood counts for each difficulty.
+ */
+function generateRandomLayout(levelKey: DifficultyKey, pSpawn: Point): {
+  fire: Point;
+  woodPositions: Point[];
+} {
+  const cfg = LEVELS[levelKey];
+  const requiredWood = cfg.requiredWood;
+  const mudWoodCount = cfg.mudWoodCount;
+  const normalWoodCount = requiredWood - mudWoodCount;
+
+  // 1. Randomize Fire Position within open glades
+  let fire: Point | null = null;
+  for (let attempt = 0; attempt < 150; attempt++) {
+    const fx = Phaser.Math.Between(130, MAP_WIDTH - 130);
+    const fy = Phaser.Math.Between(200, MAP_HEIGHT - 120);
+
+    // Keep clear of player spawn, trees, and mud
+    if (dist(fx, fy, pSpawn.x, pSpawn.y) < 180) continue;
+    if (isNearTree(fx, fy, 80)) continue;
+    if (isInsideMud(fx, fy, 55)) continue;
+
+    fire = { x: fx, y: fy };
+    break;
+  }
+  if (!fire) fire = { x: 150, y: 820 };
+
+  const placedWoods: Point[] = [];
+
+  // 2. Mud Wood Placement: distribute strictly across defined MUD_ZONES
+  const zoneIndices = Phaser.Utils.Array.Shuffle([0, 1, 2, 3, 4]);
+  for (let i = 0; i < mudWoodCount; i++) {
+    const zi = zoneIndices[i % zoneIndices.length];
+    const mz = MUD_ZONES[zi];
+    let placed = false;
+
+    for (let attempt = 0; attempt < 80; attempt++) {
+      const wx = Phaser.Math.Between(mz.x + 18, mz.x + mz.w - 18);
+      const wy = Phaser.Math.Between(mz.y + 16, mz.y + mz.h - 16);
+
+      if (isNearTree(wx, wy, 45)) continue;
+      if (dist(wx, wy, fire.x, fire.y) < 80) continue;
+      if (dist(wx, wy, pSpawn.x, pSpawn.y) < 60) continue;
+      if (placedWoods.some(w => dist(wx, wy, w.x, w.y) < 45)) continue;
+
+      placedWoods.push({ x: wx, y: wy });
+      placed = true;
+      break;
+    }
+
+    if (!placed) {
+      const fallback = MUD_WOOD[i] || { x: mz.x + mz.w / 2, y: mz.y + mz.h / 2 };
+      placedWoods.push({ x: fallback.x, y: fallback.y });
+    }
+  }
+
+  // 3. Normal Wood Placement: open grass areas, clear of trees, mud, fire, and player
+  for (let i = 0; i < normalWoodCount; i++) {
+    let placed = false;
+
+    for (let attempt = 0; attempt < 120; attempt++) {
+      const wx = Phaser.Math.Between(90, MAP_WIDTH - 90);
+      const wy = Phaser.Math.Between(150, MAP_HEIGHT - 80);
+
+      if (isNearTree(wx, wy, 50)) continue;
+      if (isInsideMud(wx, wy, 25)) continue;
+      if (dist(wx, wy, fire.x, fire.y) < 85) continue;
+      if (dist(wx, wy, pSpawn.x, pSpawn.y) < 65) continue;
+      if (placedWoods.some(w => dist(wx, wy, w.x, w.y) < 55)) continue;
+
+      placedWoods.push({ x: wx, y: wy });
+      placed = true;
+      break;
+    }
+
+    if (!placed) {
+      const fallback = NORMAL_WOOD[i % NORMAL_WOOD.length];
+      placedWoods.push({ x: fallback.x, y: fallback.y });
+    }
+  }
+
+  return { fire, woodPositions: placedWoods };
+}
 
 const TREE_COLLIDE_R = 22;
 const PLAYER_R = 14;
@@ -95,11 +197,12 @@ export class GameScene extends Phaser.Scene {
     this.woodItems = [];
     this.mudZones = [];
 
-    // Grass
+    // Grass (tiles cover full wide screens and standard map)
     const ts = 64;
-    const totalMapW = Math.max(MAP_WIDTH, this.scale.width + 64);
+    const totalMapW = Math.max(MAP_WIDTH * 1.5, 2048);
+    const totalMapH = Math.max(MAP_HEIGHT * 1.2, 1200);
     for (let tx = 0; tx < totalMapW; tx += ts)
-      for (let ty = 0; ty < MAP_HEIGHT; ty += ts)
+      for (let ty = 0; ty < totalMapH; ty += ts)
         this.add.image(tx + ts / 2, ty + ts / 2, "grass").setDisplaySize(ts, ts).setDepth(0);
 
     // Mud
@@ -181,34 +284,19 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
-    // Wood bundles (normal ground + mud, per difficulty)
-    const normalCount = cfg.requiredWood - cfg.mudWoodCount;
-    const woodPositions = [
-      ...NORMAL_WOOD.slice(0, normalCount),
-      ...MUD_WOOD.slice(0, cfg.mudWoodCount),
-    ];
-    woodPositions.forEach(({ x, y }) => this.woodItems.push(new Wood(this, x, y)));
+    // Player spawn (centered safely in the forest)
+    const playerSpawnX = MAP_WIDTH / 2;
+    const playerSpawnY = MAP_HEIGHT / 2;
+    this.player = new Player(this, playerSpawnX, playerSpawnY);
 
-    // Fire
-    this.fire = new Fire(this, FIRE_X, FIRE_Y);
+    // Randomize fire and wood positions for every new game & replay
+    const layout = generateRandomLayout(this.levelKey, { x: playerSpawnX, y: playerSpawnY });
 
-    // Decorative Ethiopian title plaque for ደመራ
-    const dameraPlacard = this.add.container(FIRE_X, FIRE_Y + 62).setDepth(9);
-    const placardGfx = this.add.graphics();
-    placardGfx.fillStyle(0x1a0f05, 0.88);
-    placardGfx.fillRoundedRect(-42, -14, 84, 28, 6);
-    placardGfx.lineStyle(1.5, 0xffb300, 0.9);
-    placardGfx.strokeRoundedRect(-42, -14, 84, 28, 6);
-    const placardTxt = this.add.text(0, 0, "ደመራ", {
-      fontSize: "17px",
-      fontFamily: '"Noto Sans Ethiopic", "Fredoka One", Nunito, sans-serif',
-      color: "#ffee58",
-      fontStyle: "bold",
-    }).setOrigin(0.5);
-    dameraPlacard.add([placardGfx, placardTxt]);
+    // Collectible wood items
+    layout.woodPositions.forEach(({ x, y }) => this.woodItems.push(new Wood(this, x, y)));
 
-    // Player
-    this.player = new Player(this, MAP_WIDTH / 2, MAP_HEIGHT / 2);
+    // ደመራ fire
+    this.fire = new Fire(this, layout.fire.x, layout.fire.y);
 
     // Camera setup (zoomed out so player can see surrounding forest, fire, and wood)
     const gameZoom = 1.0;

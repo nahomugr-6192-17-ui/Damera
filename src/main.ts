@@ -30,13 +30,13 @@ const initialDims = calculateGameDimensions();
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "game-container",
-  backgroundColor: "#2e7d32",
+  backgroundColor: "#1b5e20",
 
   scale: {
-    mode:       Phaser.Scale.EXPAND,   // Expands to fill screen, maintains aspect ratio without letterboxing
+    mode:       Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width:      960,
-    height:     540,
+    width:      initialDims.width,
+    height:     initialDims.height,
   },
 
   physics: {
@@ -58,15 +58,30 @@ const game = new Phaser.Game(config);
 
 // 3. Responsive scaling handler for viewport changes, phone rotation, and Telegram events
 function handleGameResize(): void {
+  if (!game || !game.scale) return;
   const { width, height } = calculateGameDimensions();
-  console.log("[Resize] Viewport:", window.innerWidth, "x", window.innerHeight, "Target:", width, "x", height, "Current:", game.scale.width, "x", game.scale.height);
-  if (game.scale.width !== width || game.scale.height !== height) {
-    game.scale.resize(width, height);
+  if (game.scale.gameSize.width !== width || game.scale.gameSize.height !== height) {
+    game.scale.setGameSize(width, height);
   }
+  game.scale.refresh();
 }
 
-window.addEventListener("resize", handleGameResize);
-window.addEventListener("orientationchange", () => {
-  setTimeout(handleGameResize, 150);
-});
-telegram.onViewportChange(handleGameResize);
+// Multi-stage scheduled recalculation handling asynchronous mobile orientation reflows
+function scheduleGameResize(): void {
+  handleGameResize();
+  requestAnimationFrame(handleGameResize);
+  setTimeout(handleGameResize, 100);
+  setTimeout(handleGameResize, 250);
+  setTimeout(handleGameResize, 450);
+  setTimeout(handleGameResize, 700);
+}
+
+window.addEventListener("resize", scheduleGameResize);
+window.addEventListener("orientationchange", scheduleGameResize);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", scheduleGameResize);
+}
+if (window.screen?.orientation) {
+  window.screen.orientation.addEventListener("change", scheduleGameResize);
+}
+telegram.onViewportChange(scheduleGameResize);

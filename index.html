@@ -37,26 +37,26 @@
       font-family: 'Nunito', 'Noto Sans Ethiopic', sans-serif;
     }
 
-    /* ── Game container: fixed, fills full viewport — NO flexbox so Phaser RESIZE works ── */
+    /* ── Game container: fixed, fills full viewport, centers canvas ── */
     #game-container {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* Phaser FIT mode sizes the canvas correctly — no CSS override needed */
+    /* Canvas styling */
     #game-container canvas {
       display: block;
       touch-action: none;
     }
 
-    /* ── Portrait rotation warning (phones < 768px in portrait) ── */
+    /* ── Portrait rotation warning ── */
     #rotate-prompt {
       display: none;
       position: fixed;
@@ -100,8 +100,8 @@
       }
     }
 
-    /* Show rotate prompt only on small portrait screens */
-    @media screen and (max-width: 600px) and (orientation: portrait) {
+    /* Show rotate prompt on portrait orientation */
+    @media screen and (orientation: portrait) {
       #rotate-prompt {
         display: flex;
       }
@@ -138,10 +138,10 @@
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle at center, rgba(27, 94, 32, 0.4), rgba(10, 20, 10, 0.65));
-      border: 2.5px solid rgba(255, 215, 64, 0.55);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 0 14px rgba(255, 215, 64, 0.15);
-      backdrop-filter: blur(8px);
+      background: radial-gradient(circle at center, rgba(27, 94, 32, 0.28), rgba(10, 24, 12, 0.42));
+      border: 2px solid rgba(255, 215, 64, 0.45);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 0 10px rgba(255, 215, 64, 0.12);
+      backdrop-filter: blur(3px);
     }
 
     #joystick-thumb {
@@ -268,6 +268,7 @@
     zone.addEventListener('touchend', e => { for (const t of e.changedTouches) if (t.identifier === activeTouchId) resetJoystick(); });
     zone.addEventListener('touchcancel', e => { for (const t of e.changedTouches) if (t.identifier === activeTouchId) resetJoystick(); });
     window.addEventListener('resize', () => { zoneRect = null; });
+    window.addEventListener('orientationchange', () => { zoneRect = null; });
 
     actionBtn.addEventListener('touchstart', e => {
       e.preventDefault();
@@ -289,6 +290,7 @@
       document.getElementById('mobile-controls').style.display = 'block';
       document.removeEventListener('touchstart', revealControls);
     }
+    window.__revealMobileControls = revealControls;
     document.addEventListener('touchstart', revealControls, { once: true, passive: true });
 
     // Continuously sync button label/color from GameScene state

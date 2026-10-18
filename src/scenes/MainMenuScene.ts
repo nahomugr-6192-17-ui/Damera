@@ -147,6 +147,25 @@ export class MainMenuScene extends Phaser.Scene {
       fontFamily: '"Noto Sans Ethiopic", Nunito, sans-serif',
       color: "#81c784",
     }).setOrigin(0.5, 1);
+
+    // Responsive resize handler for orientation change
+    let lastW = W;
+    let lastH = H;
+    const onResize = () => {
+      const curW = this.scale.width;
+      const curH = this.scale.height;
+      if (curW !== lastW || curH !== lastH) {
+        lastW = curW;
+        lastH = curH;
+        this.emberTimer?.destroy();
+        this.scene.restart();
+      }
+    };
+    this.scale.on("resize", onResize);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off("resize", onResize);
+      this.emberTimer?.destroy();
+    });
   }
 
   /** Traditional Ethiopian Tibeb geometric pattern top border */
